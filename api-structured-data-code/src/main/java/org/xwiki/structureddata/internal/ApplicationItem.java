@@ -1,0 +1,186 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+package org.xwiki.structureddata.internal;
+
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.objects.classes.BaseClass;
+import com.xpn.xwiki.objects.classes.PropertyClass;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+
+/**
+ * An item in an XWikiApplication.
+ * 
+ * @version $Id$
+ */
+public class ApplicationItem
+{
+    private static final String SUCCESS = "Success";
+    private static final String ERROR = "Error";
+
+    private BaseObject xObject;
+    private XWikiContext context;
+    private XWikiDocument xDoc;
+    private BaseClass xClass;
+    private String docName;
+    private Integer objNumber;
+
+    /**
+     * Create an item.
+     * @param docName the document full name in which the item is located
+     * @param objNumber the item number in the document
+     * @param xObject the BaseObject representing the item in XWiki
+     * @param xClass the BaseClass of the item
+     * @param context the wiki context
+     * @param resolver the document reference resolver
+     * @throws XWikiException 
+     */
+    public ApplicationItem(String docName, 
+            Integer objNumber, 
+            BaseObject xObject, 
+            BaseClass xClass, 
+            XWikiContext context, 
+            DocumentReferenceResolver<String> resolver) throws XWikiException {
+        XWiki xwiki = context.getWiki();
+        DocumentReference docRef = resolver.resolve(docName);
+        this.xObject = xObject;
+        this.xDoc = xwiki.getDocument(docRef, context);
+        this.context = context;
+        this.xClass = xClass;
+        this.docName = docName;
+        this.objNumber = objNumber;
+    }
+
+    /**
+     * Get the map representing the item.
+     * @return the item map
+     * @throws Exception 
+     */
+    protected ItemMap getItemMap() throws Exception 
+    {
+        ItemMap value = new ItemMap();
+        String methodToSearch = "getValue";
+        if (this.xObject == null) {
+            this.xObject = this.xClass.newCustomClassInstance(this.context);
+            this.xObject.setXClassReference(this.xClass.getReference());
+        }
+        // Get the properties map
+        List<PropertyClass> propList = this.xClass.getEnabledProperties();
+        for (int j = 0; j < propList.size(); ++j) {
+            String key = propList.get(j).getName();
+            Object propValue;
+            try {
+                Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
+                propValue = methodToFind.invoke(this.xObject.getField(key));
+            } catch (Exception e) {
+                // If value is not set, set an empty value and try again
+                this.xObject.set(key, "", this.context);
+                Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
+                propValue = methodToFind.invoke(this.xObject.getField(key));
+            }
+            value.put(key, propValue);
+        }
+        String id = this.docName;
+        if (this.objNumber > 0) {
+            id = id + "|" + this.objNumber.toString();
+        }
+        ItemMap objectMap = new ItemMap();
+        objectMap.put("id", id);
+        objectMap.put("data", value);
+        return objectMap;
+    }
+
+    /**
+     * Store the item in the wiki.
+     * @param item the item data to store
+     * @return the state of the save
+     * @throws Exception 
+     */
+    protected Map<String, Object> store(ItemMap item) throws Exception 
+    {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            if (this.xObject == null) {
+                this.xObject = this.create();
+            }
+            Set<String> itemKeySet = item.keySet();
+            Iterator<String> iter = itemKeySet.iterator();
+            while (iter.hasNext()) {
+                String key = iter.next();
+                Object value = item.get(key);
+                this.xObject.set(key, value, this.context);
+            }
+            this.context.getWiki().saveDocument(this.xDoc, "Properties updated", this.context);
+            this.xDoc.setAuthorReference(context.getUserReference());
+            result.put(ApplicationItem.SUCCESS, "1");
+        } catch (Exception e) {
+            result.put(ApplicationItem.ERROR, e);
+        }
+        return result;
+    }
+
+    /**
+     * Delete the item from the wiki.
+     * @return the state of the deletion
+     * @throws Exception 
+     */
+    protected Map<String, Object> delete() throws Exception
+    {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            this.xDoc.removeXObject(this.xObject);
+            result.put(ApplicationItem.SUCCESS, "1");
+        } catch (Exception e) {
+            result.put(ApplicationItem.ERROR, e);
+        }
+        this.context.getWiki().saveDocument(this.xDoc, this.context);
+        return result;
+    }
+
+    /**
+     * Create the item in the wiki.
+     * @return theaseObject created
+     * @throws XWikiException 
+     */
+    private BaseObject create() throws XWikiException
+    {
+        BaseObject newObj = this.xDoc.newXObject(this.xClass.getReference(), this.context);
+        try {
+            newObj.setNumber(this.objNumber);
+        } catch (Exception e) {
+            this.objNumber = newObj.getNumber();
+        }
+        if(this.xDoc.isNew()) {
+            this.xDoc.setCreatorReference(context.getUserReference());
+        }
+        this.context.getWiki().saveDocument(this.xDoc, this.context);
+        return newObj;
+    }
+}
