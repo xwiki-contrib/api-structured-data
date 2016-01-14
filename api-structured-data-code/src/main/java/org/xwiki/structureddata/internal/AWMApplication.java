@@ -25,6 +25,7 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,7 @@ public class AWMApplication implements Application
         String limitOpt = "limit";
         String offsetOpt = "offset";
         List<String> itemsList = xwiki.getSpaceDocsName(dataSpace, context);
-        itemsList.sort(null);
+        Collections.sort(itemsList);
         Integer startIndex = 0;
         Integer endIndex = itemsList.size();
         if (options.containsKey(offsetOpt)) {
