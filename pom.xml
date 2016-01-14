@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
+ *
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
  *
@@ -17,7 +19,10 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+ *
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.xwiki.commons</groupId>
@@ -27,13 +32,31 @@
   <groupId>org.xwiki.contrib</groupId>
   <artifactId>api-structured-data</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>Structured data API</name>
+  <name>Structured data access API - Parent POM</name>
   <description>An API for accessing structured data</description>
   <packaging>pom</packaging>
   <properties>
     <rendering.version>${commons.version}</rendering.version>
     <platform.version>${commons.version}</platform.version>
   </properties>
+  <scm>
+    <connection>scm:git:git://github.com/xwiki-contrib/api-structured-data.git</connection>
+    <developerConnection>scm:git:git@github.com:xwiki-contrib/api-structured-data.git</developerConnection>
+    <url>https://github.com/xwiki-contrib/api-structured-data</url>
+  </scm>
+  <developers>
+    <developer>
+      <id>yflory</id>
+      <name>Yann Flory</name>
+    </developer>
+  </developers>
+  <distributionManagement>
+    <repository>
+      <id>xwiki-staging</id>
+      <name>XWiki Staging Repository</name>
+      <url>http://nexus.xwiki.org/nexus/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
   <modules>
     <module>api-structured-data-code</module>
     <module>api-structured-data-js</module>
