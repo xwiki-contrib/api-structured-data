@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 
@@ -51,6 +52,7 @@ public class ApplicationItem
     private BaseClass xClass;
     private String docName;
     private Integer objNumber;
+    private Logger logger;
 
     /**
      * Create an item.
@@ -60,6 +62,7 @@ public class ApplicationItem
      * @param xClass the BaseClass of the item
      * @param context the wiki context
      * @param resolver the document reference resolver
+     * @param logger 
      * @throws XWikiException 
      */
     public ApplicationItem(String docName, 
@@ -67,7 +70,8 @@ public class ApplicationItem
             BaseObject xObject, 
             BaseClass xClass, 
             XWikiContext context, 
-            DocumentReferenceResolver<String> resolver) throws XWikiException {
+            DocumentReferenceResolver<String> resolver,
+            Logger logger) throws XWikiException {
         XWiki xwiki = context.getWiki();
         DocumentReference docRef = resolver.resolve(docName);
         this.xObject = xObject;
@@ -76,6 +80,7 @@ public class ApplicationItem
         this.xClass = xClass;
         this.docName = docName;
         this.objNumber = objNumber;
+        this.logger = logger;
     }
 
     /**
@@ -100,13 +105,16 @@ public class ApplicationItem
             try {
                 Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
                 propValue = methodToFind.invoke(this.xObject.getField(key));
-            } catch (Exception e) {
+                value.put(key, propValue);
+            } catch (NoSuchMethodException e) {
                 // If value is not set, set an empty value and try again
                 this.xObject.set(key, "", this.context);
                 Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
                 propValue = methodToFind.invoke(this.xObject.getField(key));
+                value.put(key, propValue);
+            } catch (Exception e) {
+                logger.error("Can't find the value of property [{}] in item [{}]", key, this.docName, e);
             }
-            value.put(key, propValue);
         }
         ItemMap objectMap;
         if (displayId) {
