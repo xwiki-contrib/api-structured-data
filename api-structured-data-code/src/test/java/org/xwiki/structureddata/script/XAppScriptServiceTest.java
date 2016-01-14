@@ -45,6 +45,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryManager;
 import org.xwiki.structureddata.internal.ItemMap;
@@ -123,6 +124,8 @@ public class XAppScriptServiceTest
     {
         QueryManager qm = xApp.queryManager;
         DocumentReferenceResolver<String> resolver = xApp.resolver; 
+        EntityReferenceSerializer<String> serializer = xApp.serializer;
+        when(serializer.serialize(classRef)).thenReturn("My.Class");
 
         // Create 2 items
         String objDocName1 = "MyClassData.Item1";
@@ -144,8 +147,8 @@ public class XAppScriptServiceTest
         
         // Create the expected result
         Map<String, Object> result = new HashMap<>();
-        result.put("Object0", item1Map);
-        result.put("Object1", item2Map);
+        result.put("Item0", item1Map);
+        result.put("Item1", item2Map);
         
         // Check the result
         Assert.assertEquals(xApp.getApp(classRef).getItems(), result);

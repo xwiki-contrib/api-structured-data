@@ -99,7 +99,7 @@ public class AWMApplication implements Application
         try {
             String objId = this.dataSpace+"."+itemId;
             BaseObject xObj = this.getObjectFromId(objId);
-            ApplicationItem item = new ApplicationItem(itemId, 0, xObj, this.xClass, this.context, this.resolver);
+            ApplicationItem item = new ApplicationItem(itemId, 0, xObj, this.xClass, this.context, this.resolver, this.logger);
             value = item.getItemMap(false);
         } catch (Exception e) {
             logger.error("Unable to load the item.", e);
@@ -130,23 +130,50 @@ public class AWMApplication implements Application
             endIndex = startIndex + (Integer) options.get(limitOpt);
         }
         List<String> finalList = itemsList.subList(startIndex, endIndex);
+        Integer objCount = 0;
         for (int i=0; i<finalList.size(); ++i) {
             String docName = finalList.get(i);
             String docFullName = dataSpace+"."+docName;
-            BaseObject xObj = this.getObjectFromId(docFullName);
-            if (xObj != null) {
-                ApplicationItem item = new ApplicationItem(docName, 0, xObj, this.xClass, this.context, this.resolver);
-                value.put("Item"+i, item.getItemMap(true));
+            if(!isTemplate(docName)) {
+                BaseObject xObj = this.getObjectFromId(docFullName);
+                if (xObj != null) {
+                    ApplicationItem item = new ApplicationItem(docName, 0, xObj, this.xClass, this.context, this.resolver, this.logger);
+                    ItemMap map = item.getItemMap(true);
+                    value.put("Item"+objCount, map);
+                    objCount++;
+                }
             }
         }
         return value;
+    }
+
+    /**
+     * Check if the document is a template of the current class
+     * @param docName
+     * @return true if the document is a template
+     */
+    private Boolean isTemplate(String docName) {
+        String className = this.xClassRef.getName();
+        // Check for template following the model "Application" -> "ApplicationTemplate"
+        // or the model "ApplicationClass" -> "ApplicationClassTemplate"
+        if (docName.equals(className + "Template")) {
+            return true;
+        }
+        // Check for template following the model "ApplicationClass" -> "ApplicationTemplate"
+        if (className.length() > 5 && className.endsWith("Class")) {
+            String shortClassName = className.substring(0, className.length()-5);
+            if (docName.equals(shortClassName + "Template")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public Map<String, Object> storeItem(String itemId, ItemMap itemData) throws Exception {
         String objName = dataSpace+"."+itemId; // The object name is the document full name
         BaseObject xObj = this.getObjectFromId(objName);
-        ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.context, this.resolver);
+        ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.context, this.resolver, this.logger);
         return item.store(itemData);
     }
 
@@ -154,7 +181,7 @@ public class AWMApplication implements Application
     public Map<String, Object> deleteItem(String itemId) throws Exception {
         String objName = dataSpace+"."+itemId; // The object name is the document full name
         BaseObject xObj = this.getObjectFromId(objName);
-        ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.context, this.resolver);
+        ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.context, this.resolver, this.logger);
         return item.delete();
     }
 

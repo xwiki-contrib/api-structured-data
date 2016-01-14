@@ -104,7 +104,7 @@ public class DefaultApplication implements Application
             String objName = this.getDocNameFromId(objId);
             Integer objNumber = this.getObjNumberFromId(objId);
             BaseObject xObj = this.getObjectFromId(objId);
-            ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver);
+            ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver, this.logger);
             value = item.getItemMap(false);
         } catch (Exception e) {
             logger.error("Unable to load the item.", e);
@@ -126,16 +126,25 @@ public class DefaultApplication implements Application
         String limitOpt = "limit";
         String offsetOpt = "offset";
         try {
+            // Create a filter to remove class templates from the results
+            String templateFilter = "and item.name <> '" +  this.xClassFullName + "Template' ";
+            if (this.xClassFullName.length() > 5 && this.xClassFullName.endsWith("Class")) {
+                String shortClassName = this.xClassFullName.substring(0, this.xClassFullName.length()-5);
+                templateFilter += "and item.name <> '" + shortClassName + "Template' ";
+            }
+            // Search query
             String queryString = "select item.name, item.number "
                     + "from Document doc, doc.object( " + this.xClassFullName + " ) as item "
-                    + "where 1=1 ";
+                    + "where 1=1 " + templateFilter;
+            // Add the additional filter from the "options" parameter
             if (options.containsKey(queryOpt)) {
                 String whereClause = (String) options.get(queryOpt);
                 queryString += "and " + whereClause;
             }
             queryString += " order by item.name, item.number";
-            // Get the list of documents which contain an instance of the app's class
+            // Execute the query
             Query query = this.queryManager.createQuery(queryString, Query.XWQL);
+            // Filter the results depending on optionnal parameters
             if (options.containsKey(limitOpt)) {
                 query = query.setLimit((Integer) options.get(limitOpt));
             }
@@ -151,9 +160,9 @@ public class DefaultApplication implements Application
                 try {
                     BaseObject xObj = this.xwiki.getDocument(docRef, this.context).getXObject(this.xClassRef, objNum);
                     if (xObj != null) {
-                        ApplicationItem item = new ApplicationItem(objName, objNum, xObj, this.xClass, this.context, this.resolver);
+                        ApplicationItem item = new ApplicationItem(objName, objNum, xObj, this.xClass, this.context, this.resolver, this.logger);
                         ItemMap properties = item.getItemMap(true);
-                        value.put("Object" + i, properties);
+                        value.put("Item" + i, properties);
                     }
                 } catch (Exception e) {
                     logger.warn("Unable to load the item number [{}]", i, e);
@@ -164,13 +173,13 @@ public class DefaultApplication implements Application
         }
         return value;
     }
-    
+
     @Override
     public Map<String, Object> storeItem(String itemId, ItemMap itemData) throws Exception {
         String objName = this.getDocNameFromId(itemId);
         Integer objNumber = this.getObjNumberFromId(itemId);
         BaseObject xObj = this.getObjectFromId(itemId);
-        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver);
+        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver, this.logger);
         return item.store(itemData);
     }
 
@@ -179,7 +188,7 @@ public class DefaultApplication implements Application
         String objName = this.getDocNameFromId(itemId);
         Integer objNumber = this.getObjNumberFromId(itemId);
         BaseObject xObj = this.getObjectFromId(itemId);
-        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver);
+        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver, this.logger);
         return item.delete();
     }
     
