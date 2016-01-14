@@ -162,7 +162,7 @@ public class XAppScriptServiceTest
         ItemMap itemMap = this.createObject(resolver, objDocName, objDocRef, "ValueString1", "Paris");
         
         // Check the result
-        Assert.assertEquals(xApp.getApp(classRef).getItem(objDocName), itemMap);
+        Assert.assertEquals(xApp.getApp(classRef).getItem(objDocName), itemMap.get("data"));
     }
 
     @Test

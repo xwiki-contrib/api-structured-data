@@ -99,7 +99,7 @@ public class AWMApplication implements Application
             String objId = this.dataSpace+"."+itemId;
             BaseObject xObj = this.getObjectFromId(objId);
             ApplicationItem item = new ApplicationItem(itemId, 0, xObj, this.xClass, this.context, this.resolver);
-            value = item.getItemMap();
+            value = item.getItemMap(false);
         } catch (Exception e) {
             logger.error("Unable to load the item.", e);
         }
@@ -135,7 +135,7 @@ public class AWMApplication implements Application
             BaseObject xObj = this.getObjectFromId(docFullName);
             if (xObj != null) {
                 ApplicationItem item = new ApplicationItem(docName, 0, xObj, this.xClass, this.context, this.resolver);
-                value.put("Item"+i, item.getItemMap());
+                value.put("Item"+i, item.getItemMap(true));
             }
         }
         return value;

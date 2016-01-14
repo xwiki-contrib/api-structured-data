@@ -80,10 +80,11 @@ public class ApplicationItem
 
     /**
      * Get the map representing the item.
+     * @param displayId true if the returned map should contain both the data and the id
      * @return the item map
      * @throws Exception 
      */
-    protected ItemMap getItemMap() throws Exception 
+    protected ItemMap getItemMap(Boolean displayId) throws Exception
     {
         ItemMap value = new ItemMap();
         String methodToSearch = "getValue";
@@ -107,13 +108,18 @@ public class ApplicationItem
             }
             value.put(key, propValue);
         }
-        String id = this.docName;
-        if (this.objNumber > 0) {
-            id = id + "|" + this.objNumber.toString();
+        ItemMap objectMap;
+        if (displayId) {
+            String id = this.docName;
+            if (this.objNumber > 0) {
+                id = id + "|" + this.objNumber.toString();
+            }
+            objectMap = new ItemMap();
+            objectMap.put("id", id);
+            objectMap.put("data", value);
+        } else {
+            objectMap = value;
         }
-        ItemMap objectMap = new ItemMap();
-        objectMap.put("id", id);
-        objectMap.put("data", value);
         return objectMap;
     }
 

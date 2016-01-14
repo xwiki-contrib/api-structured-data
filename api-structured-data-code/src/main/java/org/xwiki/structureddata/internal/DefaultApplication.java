@@ -105,7 +105,7 @@ public class DefaultApplication implements Application
             Integer objNumber = this.getObjNumberFromId(objId);
             BaseObject xObj = this.getObjectFromId(objId);
             ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver);
-            value = item.getItemMap();
+            value = item.getItemMap(false);
         } catch (Exception e) {
             logger.error("Unable to load the item.", e);
         }
@@ -152,7 +152,7 @@ public class DefaultApplication implements Application
                     BaseObject xObj = this.xwiki.getDocument(docRef, this.context).getXObject(this.xClassRef, objNum);
                     if (xObj != null) {
                         ApplicationItem item = new ApplicationItem(objName, objNum, xObj, this.xClass, this.context, this.resolver);
-                        ItemMap properties = item.getItemMap();
+                        ItemMap properties = item.getItemMap(true);
                         value.put("Object" + i, properties);
                     }
                 } catch (Exception e) {

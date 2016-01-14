@@ -11,7 +11,6 @@ import com.xpn.xwiki.objects.classes.DBListClass;
 import com.xpn.xwiki.objects.classes.ListItem;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 import com.xpn.xwiki.objects.classes.StaticListClass;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
