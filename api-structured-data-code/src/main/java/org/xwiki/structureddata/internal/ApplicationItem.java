@@ -35,6 +35,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.WikiReference;
 
 /**
  * An item in an XWikiApplication.
@@ -60,6 +61,7 @@ public class ApplicationItem
      * @param objNumber the item number in the document
      * @param xObject the BaseObject representing the item in XWiki
      * @param xClass the BaseClass of the item
+     * @param wikiRef the wiki reference of the item
      * @param context the wiki context
      * @param resolver the document reference resolver
      * @param logger 
@@ -68,14 +70,15 @@ public class ApplicationItem
     public ApplicationItem(String docName, 
             Integer objNumber, 
             BaseObject xObject, 
-            BaseClass xClass, 
+            BaseClass xClass,
+            WikiReference wikiRef,
             XWikiContext context, 
             DocumentReferenceResolver<String> resolver,
             Logger logger) throws XWikiException {
         XWiki xwiki = context.getWiki();
-        DocumentReference docRef = resolver.resolve(docName);
-        this.xObject = xObject;
+        DocumentReference docRef = resolver.resolve(docName, wikiRef);
         this.xDoc = xwiki.getDocument(docRef, context);
+        this.xObject = xObject;
         this.context = context;
         this.xClass = xClass;
         this.docName = docName;
@@ -113,7 +116,7 @@ public class ApplicationItem
                 propValue = methodToFind.invoke(this.xObject.getField(key));
                 value.put(key, propValue);
             } catch (Exception e) {
-                logger.error("Can't find the value of property [{}] in item [{}]", key, this.docName, e);
+                logger.error("Can't find the value of property [{}] in item [{}]", key, this.docName);
             }
         }
         ItemMap objectMap;

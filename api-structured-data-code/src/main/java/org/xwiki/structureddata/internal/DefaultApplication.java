@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
@@ -52,11 +53,11 @@ public class DefaultApplication implements Application
 
     private QueryManager queryManager;
     private DocumentReferenceResolver<String> resolver;
-    private EntityReferenceSerializer<String> serializer;
     private Logger logger;
 
     private BaseClass xClass;
     private DocumentReference xClassRef;
+    private WikiReference wikiRef;
     private String xClassFullName;
     private XWikiContext context;
     private XWiki xwiki;
@@ -81,10 +82,10 @@ public class DefaultApplication implements Application
         this.context = context;
         this.queryManager = queryManager;
         this.resolver = resolver;
-        this.serializer = serializer;
         this.logger = logger;
         this.xwiki = this.context.getWiki();
         this.xClassRef = classReference;
+        this.wikiRef = classReference.getWikiReference();
         this.xClass = this.xwiki.getXClass(this.xClassRef, context);
         this.xClassFullName = serializer.serialize(xClassRef);
     }
@@ -104,7 +105,7 @@ public class DefaultApplication implements Application
             String objName = this.getDocNameFromId(objId);
             Integer objNumber = this.getObjNumberFromId(objId);
             BaseObject xObj = this.getObjectFromId(objId);
-            ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver, this.logger);
+            ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
             value = item.getItemMap(false);
         } catch (Exception e) {
             logger.error("Unable to load the item.", e);
@@ -151,16 +152,16 @@ public class DefaultApplication implements Application
             if (options.containsKey(offsetOpt)) {
                 query = query.setOffset((Integer) options.get(offsetOpt));
             }
-            List<Object[]> objDocList = query.execute();
+            List<Object[]> objDocList = query.setWiki(this.wikiRef.getName()).execute();
             for (int i = 0; i < objDocList.size(); ++i) {
                 // Get all instances of the class in the document
                 String objName = (String) objDocList.get(i)[0];
                 Integer objNum = (Integer) objDocList.get(i)[1];
-                DocumentReference docRef = this.resolver.resolve(objName);
+                DocumentReference docRef = this.resolver.resolve(objName, this.wikiRef);
                 try {
                     BaseObject xObj = this.xwiki.getDocument(docRef, this.context).getXObject(this.xClassRef, objNum);
                     if (xObj != null) {
-                        ApplicationItem item = new ApplicationItem(objName, objNum, xObj, this.xClass, this.context, this.resolver, this.logger);
+                        ApplicationItem item = new ApplicationItem(objName, objNum, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
                         ItemMap properties = item.getItemMap(true);
                         value.put("Item" + i, properties);
                     }
@@ -179,7 +180,7 @@ public class DefaultApplication implements Application
         String objName = this.getDocNameFromId(itemId);
         Integer objNumber = this.getObjNumberFromId(itemId);
         BaseObject xObj = this.getObjectFromId(itemId);
-        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver, this.logger);
+        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
         return item.store(itemData);
     }
 
@@ -188,7 +189,7 @@ public class DefaultApplication implements Application
         String objName = this.getDocNameFromId(itemId);
         Integer objNumber = this.getObjNumberFromId(itemId);
         BaseObject xObj = this.getObjectFromId(itemId);
-        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.context, this.resolver, this.logger);
+        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
         return item.delete();
     }
     
@@ -210,7 +211,7 @@ public class DefaultApplication implements Application
     }
     protected XWikiDocument getDocFromId(String objId) throws XWikiException {
         String docName = this.getDocNameFromId(objId);
-        DocumentReference itemDocRef = this.resolver.resolve(docName);
+        DocumentReference itemDocRef = this.resolver.resolve(docName, this.wikiRef);
         return this.xwiki.getDocument(itemDocRef, this.context);
     }
     protected BaseObject getObjectFromId(String objId) throws XWikiException {

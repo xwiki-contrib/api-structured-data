@@ -34,6 +34,7 @@ import org.xwiki.structureddata.internal.DefaultApplication;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.query.QueryManager;
 import org.xwiki.structureddata.internal.AWMApplication;
 import org.xwiki.structureddata.Application;
@@ -80,7 +81,14 @@ public class XAppScriptService implements ScriptService
             newApp = new AWMApplication(context, resolver, serializer, logger, awmWebHomeRef);
         }
         else {
-            newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, resolver.resolve(appId));
+            // Check if the wiki name is specified in the string. If not, get the wiki of the current document
+            if(appId.matches("(.+):(.+)[^\\\\]?\\.(.+)")) {
+                newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, resolver.resolve(appId));
+            }
+            else {
+                WikiReference wikiRef = context.getDoc().getDocumentReference().getWikiReference();
+                newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, resolver.resolve(appId, wikiRef));
+            }
         }
         return newApp;
     }

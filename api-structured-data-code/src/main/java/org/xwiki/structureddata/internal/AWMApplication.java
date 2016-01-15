@@ -35,6 +35,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.structureddata.Application;
 
 /**
@@ -50,6 +51,7 @@ public class AWMApplication implements Application
 
     private BaseClass xClass;
     private DocumentReference xClassRef;
+    private WikiReference wikiRef;
     private XWikiContext context;
     private XWiki xwiki;
     private String dataSpace;
@@ -66,6 +68,7 @@ public class AWMApplication implements Application
         this.serializer = serializer;
         this.logger = logger;
         this.xwiki = context.getWiki();
+        // Get the class reference from the AppWithinMinutes.LiveTableClass object
         BaseObject item;
         if(appWebHomeRef != null) {
             item = getAWMObject(context, serializer, appWebHomeRef);
@@ -73,7 +76,8 @@ public class AWMApplication implements Application
         else {
             item = getAWMObject(context, serializer);
         }
-        DocumentReference classReference = resolver.resolve(item.getStringValue("class"));
+        this.wikiRef = context.getDoc().getDocumentReference().getWikiReference();
+        DocumentReference classReference = resolver.resolve(item.getStringValue("class"), this.wikiRef);
         this.xClassRef = classReference;
         this.xClass = this.xwiki.getXClass(classReference, context);
         // Get data space
@@ -99,7 +103,7 @@ public class AWMApplication implements Application
         try {
             String objId = this.dataSpace+"."+itemId;
             BaseObject xObj = this.getObjectFromId(objId);
-            ApplicationItem item = new ApplicationItem(itemId, 0, xObj, this.xClass, this.context, this.resolver, this.logger);
+            ApplicationItem item = new ApplicationItem(itemId, 0, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
             value = item.getItemMap(false);
         } catch (Exception e) {
             logger.error("Unable to load the item.", e);
@@ -137,7 +141,7 @@ public class AWMApplication implements Application
             if(!isTemplate(docName)) {
                 BaseObject xObj = this.getObjectFromId(docFullName);
                 if (xObj != null) {
-                    ApplicationItem item = new ApplicationItem(docName, 0, xObj, this.xClass, this.context, this.resolver, this.logger);
+                    ApplicationItem item = new ApplicationItem(docName, 0, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
                     ItemMap map = item.getItemMap(true);
                     value.put("Item"+objCount, map);
                     objCount++;
@@ -173,7 +177,7 @@ public class AWMApplication implements Application
     public Map<String, Object> storeItem(String itemId, ItemMap itemData) throws Exception {
         String objName = dataSpace+"."+itemId; // The object name is the document full name
         BaseObject xObj = this.getObjectFromId(objName);
-        ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.context, this.resolver, this.logger);
+        ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
         return item.store(itemData);
     }
 
@@ -181,7 +185,7 @@ public class AWMApplication implements Application
     public Map<String, Object> deleteItem(String itemId) throws Exception {
         String objName = dataSpace+"."+itemId; // The object name is the document full name
         BaseObject xObj = this.getObjectFromId(objName);
-        ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.context, this.resolver, this.logger);
+        ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
         return item.delete();
     }
 
@@ -272,7 +276,7 @@ public class AWMApplication implements Application
      */
     private XWikiDocument getDocFromId(String itemId) throws XWikiException 
     {
-        DocumentReference itemDocRef = this.resolver.resolve(itemId);
+        DocumentReference itemDocRef = this.resolver.resolve(itemId, this.wikiRef);
         return this.xwiki.getDocument(itemDocRef, this.context);
     }
     /**

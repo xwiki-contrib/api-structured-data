@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -84,7 +85,7 @@ public class XAppScriptServiceTest
         // Create the class in the app with two properties (prop1=String, prop2=StaticList)
         myclassdoc = mock(XWikiDocument.class);
         myclass = mock(BaseClass.class);
-        classRef = new DocumentReference("wiki", "My", "Class");
+        classRef = new DocumentReference("xwiki", "My", "Class");
         when(xcontext.getWiki().getXClass(classRef, xcontext)).thenReturn(myclass);
         when(xcontext.getWiki().getDocument(classRef, xcontext)).thenReturn(myclassdoc);
 
@@ -143,6 +144,7 @@ public class XAppScriptServiceTest
         List<Object[]> queryList = new ArrayList<>();
         queryList.add(queryObj1);
         queryList.add(queryObj2);
+        when(query.setWiki("xwiki")).thenReturn(query);
         doReturn(queryList).when(query).execute();
         
         // Create the expected result
@@ -224,7 +226,7 @@ public class XAppScriptServiceTest
         XWikiDocument objDoc = mock(XWikiDocument.class);
         String objDocName = docName;
         BaseObject obj = mock(BaseObject.class);
-        when(resolver.resolve(objDocName)).thenReturn(docRef);
+        when(resolver.resolve(eq(objDocName), any())).thenReturn(docRef);
         when(xcontext.getWiki().getDocument(docRef, xcontext)).thenReturn(objDoc);
         when(objDoc.getXObject(classRef, 0)).thenReturn(obj);
         StringProperty prop1Obj = mock(StringProperty.class);
