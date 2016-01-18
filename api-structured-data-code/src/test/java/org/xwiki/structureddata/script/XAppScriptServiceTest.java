@@ -123,7 +123,7 @@ public class XAppScriptServiceTest
         schema.put("prop2", prop2schema);
         
         // CHeck the result
-        Assert.assertEquals(xApp.getApp(classRef).getAppSchema(), schema);
+        Assert.assertEquals(xApp.getApp(classRef).getSchema(), schema);
     }
 
     @Test
@@ -155,8 +155,8 @@ public class XAppScriptServiceTest
         
         // Create the expected result
         Map<String, Object> result = new HashMap<>();
-        result.put("Item0", item1Map);
-        result.put("Item1", item2Map);
+        result.put(objDocName1, item1Map);
+        result.put(objDocName2, item2Map);
         
         // Check the result
         Assert.assertEquals(xApp.getApp(classRef).getItems(), result);
@@ -173,7 +173,7 @@ public class XAppScriptServiceTest
         ItemMap itemMap = this.createObject(resolver, objDocName, objDocRef, "ValueString1", "Paris");
         
         // Check the result
-        Assert.assertEquals(xApp.getApp(classRef).getItem(objDocName), itemMap.get("data"));
+        Assert.assertEquals(xApp.getApp(classRef).getItem(objDocName), itemMap);
     }
 
     @Test
@@ -189,15 +189,14 @@ public class XAppScriptServiceTest
         BaseObject obj = doc.getXObject(classRef, 0);
         
         // Create the new data
-        ItemMap dataMap = (ItemMap) itemMap.get("data");
-        dataMap.put("prop1", "NewValueString");
+        itemMap.put("prop1", "NewValueString");
         
         // Create the result map
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("Success", "1");
         
         // Check for success      
-        Assert.assertEquals(xApp.getApp(classRef).storeItem(objDocName, dataMap), resultMap);
+        Assert.assertEquals(xApp.getApp(classRef).storeItem(itemMap), resultMap);
         // Check that properties have been updated and modifications have been saved
         verify(obj).set("prop1", "NewValueString", xcontext);
         verify(obj).set("prop2", "Paris", xcontext);
@@ -242,12 +241,10 @@ public class XAppScriptServiceTest
         when(obj.getField("prop2")).thenReturn(prop2Obj);
         when(prop2Obj.getValue()).thenReturn(valueProp2);
         
-        ItemMap result = new ItemMap();
         ItemMap prop1data = new ItemMap();
-        result.put("id", docName);
         prop1data.put("prop1", valueProp1);
         prop1data.put("prop2", valueProp2);
-        result.put("data", prop1data);
-        return result;
+        prop1data.setId(docName);
+        return prop1data;
     }
 }

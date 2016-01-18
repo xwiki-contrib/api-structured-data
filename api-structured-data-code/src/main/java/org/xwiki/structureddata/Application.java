@@ -34,7 +34,7 @@ public interface Application
      * @return the schema map
      * @throws Exception 
      */
-    Map<String, Object> getAppSchema() throws Exception;
+    Map<String, Object> getSchema() throws Exception;
     
     /**
      * Get an item of the application.
@@ -61,12 +61,11 @@ public interface Application
     
     /**
      * Store an item of the application in the wiki.
-     * @param itemId the string id of the item
      * @param itemData the data of the item
      * @return the state of the save (Success/Error)
      * @throws Exception 
      */
-    Map<String, Object> storeItem(String itemId, ItemMap itemData) throws Exception;
+    Map<String, Object> storeItem(ItemMap itemData) throws Exception;
     
     /**
      * Delete an item of the application from the wiki.

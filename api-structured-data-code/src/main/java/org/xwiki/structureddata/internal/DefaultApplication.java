@@ -98,7 +98,7 @@ public class DefaultApplication implements Application
     }
 
     @Override
-    public Map<String, Object> getAppSchema() throws XWikiException 
+    public Map<String, Object> getSchema() throws XWikiException
     {
         if(!this.authorization.hasAccess(Right.VIEW, xClass.getReference())) {
             return new HashMap<>();
@@ -116,7 +116,7 @@ public class DefaultApplication implements Application
             Integer objNumber = this.getObjNumberFromId(itemId);
             BaseObject xObj = this.getObjectFromId(itemId);
             ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
-            value = item.getItemMap(false);
+            value = item.getItemMap();
         } catch (AccessDeniedException e) {
         } catch (Exception e) {
             logger.error("Unable to load the item [{}] : [{}]", itemId, e.toString());
@@ -174,8 +174,8 @@ public class DefaultApplication implements Application
                     BaseObject xObj = this.xwiki.getDocument(docRef, this.context).getXObject(this.xClassRef, objNum);
                     if (xObj != null) {
                         ApplicationItem item = new ApplicationItem(objName, objNum, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
-                        ItemMap properties = item.getItemMap(true);
-                        value.put("Item" + i, properties);
+                        ItemMap properties = item.getItemMap();
+                        value.put(properties.getId(), properties);
                     }
                 } catch (AccessDeniedException e) {
                 } catch (Exception e) {
@@ -189,7 +189,8 @@ public class DefaultApplication implements Application
     }
 
     @Override
-    public Map<String, Object> storeItem(String itemId, ItemMap itemData) throws Exception {
+    public Map<String, Object> storeItem(ItemMap itemData) throws Exception {
+        String itemId = itemData.getId();
         String objName = this.getDocNameFromId(itemId);
         DocumentReference itemDocRef = resolver.resolve(objName, this.wikiRef);
         try {

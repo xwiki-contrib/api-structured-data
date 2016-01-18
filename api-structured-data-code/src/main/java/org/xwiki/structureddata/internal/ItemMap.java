@@ -28,6 +28,16 @@ import java.util.HashMap;
  */
 @SuppressWarnings("serial")
 public class ItemMap extends HashMap<String, Object> {
+
+    private String apiId;
+
+    public String getId() {
+        return apiId;
+    }
+
+    public void setId(String apiId) {
+        this.apiId = apiId;
+    }
     /**
      * Change the value associated to a key in the map.
      * @param key the String key

@@ -85,7 +85,7 @@ public class ApplicationResource extends XWikiResource
             DocumentReference classRef = resolver.resolve(appId);
             newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, classRef);
         }
-        result.put("Schema", newApp.getAppSchema());
+        result.put("Schema", newApp.getSchema());
         result.put("Items", newApp.getItems());
         return result;
     }

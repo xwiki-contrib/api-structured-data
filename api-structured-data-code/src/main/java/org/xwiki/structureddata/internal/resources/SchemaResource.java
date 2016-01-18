@@ -83,6 +83,6 @@ public class SchemaResource extends XWikiResource
             DocumentReference classRef = resolver.resolve(appId);
             newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, classRef);
         }
-        return newApp.getAppSchema();
+        return newApp.getSchema();
     }
 }

@@ -118,7 +118,7 @@ public class ItemResource extends XWikiResource
             DocumentReference classRef = resolver.resolve(appId);
             newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, classRef);
         }
-        return newApp.storeItem(itemId, itemData);
+        return newApp.storeItem(itemData);
     }
 
     /**
