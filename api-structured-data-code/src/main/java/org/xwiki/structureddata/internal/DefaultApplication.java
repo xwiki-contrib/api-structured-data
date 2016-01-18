@@ -57,6 +57,7 @@ public class DefaultApplication implements Application
     private QueryManager queryManager;
     private ContextualAuthorizationManager authorization;
     private DocumentReferenceResolver<String> resolver;
+    private EntityReferenceSerializer<String> serializer;
     private Logger logger;
 
     private BaseClass xClass;
@@ -89,6 +90,7 @@ public class DefaultApplication implements Application
         this.queryManager = queryManager;
         this.authorization = authorizationManager;
         this.resolver = resolver;
+        this.serializer = serializer;
         this.logger = logger;
         this.xwiki = this.context.getWiki();
         this.xClassRef = classReference;
@@ -115,7 +117,7 @@ public class DefaultApplication implements Application
             String objName = this.getDocNameFromId(itemId);
             Integer objNumber = this.getObjNumberFromId(itemId);
             BaseObject xObj = this.getObjectFromId(itemId);
-            ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+            ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj);
             value = item.getItemMap();
         } catch (AccessDeniedException e) {
         } catch (Exception e) {
@@ -167,13 +169,13 @@ public class DefaultApplication implements Application
             for (int i = 0; i < objDocList.size(); ++i) {
                 // Get all instances of the class in the document
                 String objName = (String) objDocList.get(i)[0];
-                Integer objNum = (Integer) objDocList.get(i)[1];
+                Integer objNumber = (Integer) objDocList.get(i)[1];
                 DocumentReference docRef = this.resolver.resolve(objName, this.wikiRef);
                 try {
                     this.authorization.checkAccess(Right.VIEW, docRef);
-                    BaseObject xObj = this.xwiki.getDocument(docRef, this.context).getXObject(this.xClassRef, objNum);
+                    BaseObject xObj = this.xwiki.getDocument(docRef, this.context).getXObject(this.xClassRef, objNumber);
                     if (xObj != null) {
-                        ApplicationItem item = new ApplicationItem(objName, objNum, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+                        ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj);
                         ItemMap properties = item.getItemMap();
                         value.put(properties.getId(), properties);
                     }
@@ -197,7 +199,7 @@ public class DefaultApplication implements Application
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             Integer objNumber = this.getObjNumberFromId(itemId);
             BaseObject xObj = this.getObjectFromId(itemId);
-            ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+            ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj);
             return item.store(itemData);
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
@@ -214,7 +216,7 @@ public class DefaultApplication implements Application
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             Integer objNumber = this.getObjNumberFromId(itemId);
             BaseObject xObj = this.getObjectFromId(itemId);
-            ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+            ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj);
             return item.delete();
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
@@ -252,6 +254,10 @@ public class DefaultApplication implements Application
         }
         this.authorization.checkAccess(Right.VIEW, xDoc.getDocumentReference());
         return xDoc.getXObject(this.xClassRef, objNumber);
+    }
+
+    private ApplicationItem getApplicationItem(String objName, Integer objNumber, BaseObject xObj) throws XWikiException {
+        return new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.serializer, this.logger);
     }
     
     @Override

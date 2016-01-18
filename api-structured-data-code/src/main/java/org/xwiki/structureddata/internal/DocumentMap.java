@@ -19,28 +19,16 @@
  */
 package org.xwiki.structureddata.internal;
 
-import com.xpn.xwiki.doc.XWikiDocument;
 import java.util.HashMap;
-import org.xwiki.model.reference.EntityReferenceSerializer;
 
 /**
- * Change the value of an item using set().
+ * Displays document fields.
  * 
  * @version $Id$
  */
 @SuppressWarnings("serial")
-public class ItemMap extends HashMap<String, Object> {
+public class DocumentMap extends HashMap<String, Object> {
 
-    private String apiId;
-    private DocumentMap docMap;
-
-    public String getId() {
-        return apiId;
-    }
-
-    public void setId(String apiId) {
-        this.apiId = apiId;
-    }
     /**
      * Change the value associated to a key in the map.
      * @param key the String key
@@ -49,22 +37,5 @@ public class ItemMap extends HashMap<String, Object> {
     public void set(String key, Object value)
     {
         this.put(key, value);
-    }
-
-    protected void setXDoc(XWikiDocument xDoc, EntityReferenceSerializer<String> serializer) {
-        DocumentMap docMap = new DocumentMap();
-        docMap.put("author", xDoc.getAuthorReference());
-        docMap.put("creator", xDoc.getCreatorReference());
-        docMap.put("creationDate", xDoc.getCreationDate());
-        docMap.put("updateDate", xDoc.getContentUpdateDate());
-        docMap.put("parent", xDoc.getParentReference());
-        docMap.put("hidden", xDoc.isHidden());
-        docMap.put("title", xDoc.getTitle());
-        docMap.put("content", xDoc.getContent());
-        this.docMap = docMap;
-    }
-
-    public DocumentMap getDocumentFields() {
-        return docMap;
     }
 }

@@ -27,6 +27,7 @@ import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.WikiReference;
 
 /**
@@ -53,6 +55,8 @@ public class ApplicationItem
     private BaseClass xClass;
     private String docName;
     private Integer objNumber;
+    private EntityReferenceSerializer<String> serializer;
+    private DocumentReferenceResolver<String> resolver;
     private Logger logger;
 
     /**
@@ -64,6 +68,7 @@ public class ApplicationItem
      * @param wikiRef the wiki reference of the item
      * @param context the wiki context
      * @param resolver the document reference resolver
+     * @param serializer 
      * @param logger 
      * @throws XWikiException 
      */
@@ -74,6 +79,7 @@ public class ApplicationItem
             WikiReference wikiRef,
             XWikiContext context, 
             DocumentReferenceResolver<String> resolver,
+            EntityReferenceSerializer<String> serializer,
             Logger logger) throws XWikiException {
         XWiki xwiki = context.getWiki();
         DocumentReference docRef = resolver.resolve(docName, wikiRef);
@@ -83,6 +89,8 @@ public class ApplicationItem
         this.xClass = xClass;
         this.docName = docName;
         this.objNumber = objNumber;
+        this.serializer = serializer;
+        this.resolver = resolver;
         this.logger = logger;
     }
 
@@ -127,6 +135,7 @@ public class ApplicationItem
         }
         objectMap = value;
         objectMap.setId(id);
+        objectMap.setXDoc(this.xDoc, this.serializer);
         return objectMap;
     }
 
@@ -151,6 +160,17 @@ public class ApplicationItem
                 this.xObject.set(key, value, this.context);
             }
             this.xDoc.setAuthorReference(context.getUserReference());
+            if(item.getDocumentFields() != null && item.getDocumentFields().size() >= 8) {
+                DocumentMap docMap = item.getDocumentFields();
+                this.xDoc.setAuthorReference((DocumentReference) docMap.get("author"));
+                this.xDoc.setCreatorReference((DocumentReference) docMap.get("creator"));
+                this.xDoc.setCreationDate((Date) docMap.get("creationDate"));
+                this.xDoc.setContentUpdateDate((Date) docMap.get("updateDate"));
+                this.xDoc.setParentReference((DocumentReference) docMap.get("parent"));
+                this.xDoc.setHidden((Boolean) docMap.get("hidden"));
+                this.xDoc.setTitle((String) docMap.get("title"));
+                this.xDoc.setContent((String) docMap.get("content"));
+            }
             this.context.getWiki().saveDocument(this.xDoc, "Properties updated", this.context);
             result.put(ApplicationItem.SUCCESS, "1");
         } catch (Exception e) {

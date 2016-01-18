@@ -112,7 +112,7 @@ public class AWMApplication implements Application
         try {
             String objId = this.dataSpace+"."+itemId;
             BaseObject xObj = this.getObjectFromId(objId);
-            ApplicationItem item = new ApplicationItem(itemId, 0, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+            ApplicationItem item = this.getApplicationItem(itemId, 0, xObj);
             value = item.getItemMap();
         } catch (AccessDeniedException e) {
         } catch (Exception e) {
@@ -147,7 +147,6 @@ public class AWMApplication implements Application
         }
         List<String> finalList = itemsList.subList(startIndex, endIndex);
         // Display the items
-        Integer objCount = 0;
         for (int i=0; i<finalList.size(); ++i) {
             // Check if the document is a template and prevent it from being displayed if that is the case
             String docName = finalList.get(i);
@@ -158,10 +157,9 @@ public class AWMApplication implements Application
                 try {
                     BaseObject xObj = this.getObjectFromId(docFullName);
                     if (xObj != null) {
-                        ApplicationItem item = new ApplicationItem(docName, 0, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+                        ApplicationItem item = this.getApplicationItem(docName, 0, xObj);
                         ItemMap map = item.getItemMap();
                         value.put(map.getId(), map);
-                        objCount++;
                     }
                 } catch (AccessDeniedException e) {
                 } catch (Exception e) {
@@ -202,7 +200,7 @@ public class AWMApplication implements Application
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             BaseObject xObj = this.getObjectFromId(objName);
-            ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+            ApplicationItem item = this.getApplicationItem(objName, 0, xObj);
             return item.store(itemData);
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
@@ -218,7 +216,7 @@ public class AWMApplication implements Application
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             BaseObject xObj = this.getObjectFromId(objName);
-            ApplicationItem item = new ApplicationItem(objName, 0, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+            ApplicationItem item = this.getApplicationItem(objName, 0, xObj);
             return item.delete();
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
@@ -333,7 +331,11 @@ public class AWMApplication implements Application
         this.authorization.checkAccess(Right.VIEW, xDoc.getDocumentReference());
         return xDoc.getXObject(this.xClassRef);
     }
-    
+
+    private ApplicationItem getApplicationItem(String objName, Integer objNumber, BaseObject xObj) throws XWikiException {
+        return new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.serializer, this.logger);
+    }
+
     @Override
     public String toString() 
     {
