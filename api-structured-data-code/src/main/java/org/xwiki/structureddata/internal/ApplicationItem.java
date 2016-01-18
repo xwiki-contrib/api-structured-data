@@ -100,6 +100,7 @@ public class ApplicationItem
             this.xObject = this.xClass.newCustomClassInstance(this.context);
             this.xObject.setXClassReference(this.xClass.getReference());
         }
+        System.out.println(this.xObject);
         // Get the properties map
         List<PropertyClass> propList = this.xClass.getEnabledProperties();
         for (int j = 0; j < propList.size(); ++j) {
@@ -109,14 +110,16 @@ public class ApplicationItem
                 Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
                 propValue = methodToFind.invoke(this.xObject.getField(key));
                 value.put(key, propValue);
-            } catch (NoSuchMethodException e) {
-                // If value is not set, set an empty value and try again
-                this.xObject.set(key, "", this.context);
-                Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
-                propValue = methodToFind.invoke(this.xObject.getField(key));
-                value.put(key, propValue);
-            } catch (Exception e) {
-                logger.error("Can't find the value of property [{}] in item [{}]", key, this.docName);
+            } catch (NullPointerException | NoSuchMethodException e) {
+                try {
+                    // If value is not set, set an empty value and try again
+                    this.xObject.set(key, "", this.context);
+                    Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
+                    propValue = methodToFind.invoke(this.xObject.getField(key));
+                    value.put(key, propValue);
+                } catch (NullPointerException | NoSuchMethodException f) {
+                    logger.error("Can't find the value of property [{}] in item [{}]", key, this.docName);
+                }
             }
         }
         ItemMap objectMap;
@@ -154,8 +157,8 @@ public class ApplicationItem
                 Object value = item.get(key);
                 this.xObject.set(key, value, this.context);
             }
-            this.context.getWiki().saveDocument(this.xDoc, "Properties updated", this.context);
             this.xDoc.setAuthorReference(context.getUserReference());
+            this.context.getWiki().saveDocument(this.xDoc, "Properties updated", this.context);
             result.put(ApplicationItem.SUCCESS, "1");
         } catch (Exception e) {
             result.put(ApplicationItem.ERROR, e);
