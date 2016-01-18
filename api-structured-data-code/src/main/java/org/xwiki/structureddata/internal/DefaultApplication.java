@@ -38,6 +38,9 @@ import org.xwiki.model.reference.WikiReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
+import org.xwiki.security.authorization.AccessDeniedException;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.structureddata.Application;
 
 /**
@@ -52,6 +55,7 @@ public class DefaultApplication implements Application
     private static final String PATTERN_ITEM_ID_NUMBER = "\\|[0-9]+";
 
     private QueryManager queryManager;
+    private ContextualAuthorizationManager authorization;
     private DocumentReferenceResolver<String> resolver;
     private Logger logger;
 
@@ -65,6 +69,7 @@ public class DefaultApplication implements Application
     /**
      * Create a new object describing the application represented by a class reference.
      * @param context the context in the running wiki
+     * @param authorizationManager 
      * @param resolver the Document reference resolver
      * @param serializer 
      * @param queryManager the XWiki query manager
@@ -72,7 +77,8 @@ public class DefaultApplication implements Application
      * @param classReference the reference of the class
      * @throws XWikiException 
      */
-    public DefaultApplication(XWikiContext context, 
+    public DefaultApplication(XWikiContext context,
+            ContextualAuthorizationManager authorizationManager,
             DocumentReferenceResolver<String> resolver, 
             EntityReferenceSerializer<String> serializer,
             QueryManager queryManager,
@@ -81,6 +87,7 @@ public class DefaultApplication implements Application
     {
         this.context = context;
         this.queryManager = queryManager;
+        this.authorization = authorizationManager;
         this.resolver = resolver;
         this.logger = logger;
         this.xwiki = this.context.getWiki();
@@ -93,22 +100,26 @@ public class DefaultApplication implements Application
     @Override
     public Map<String, Object> getAppSchema() throws XWikiException 
     {
+        if(!this.authorization.hasAccess(Right.VIEW, xClass.getReference())) {
+            return new HashMap<>();
+        }
         return ApplicationSchema.getAppSchema(xClass, context, logger);
     }
 
     
     @Override
-    public ItemMap getItem(String objId) 
+    public ItemMap getItem(String itemId) 
     {
         ItemMap value = new ItemMap();
         try {
-            String objName = this.getDocNameFromId(objId);
-            Integer objNumber = this.getObjNumberFromId(objId);
-            BaseObject xObj = this.getObjectFromId(objId);
+            String objName = this.getDocNameFromId(itemId);
+            Integer objNumber = this.getObjNumberFromId(itemId);
+            BaseObject xObj = this.getObjectFromId(itemId);
             ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
             value = item.getItemMap(false);
+        } catch (AccessDeniedException e) {
         } catch (Exception e) {
-            logger.error("Unable to load the item.", e);
+            logger.error("Unable to load the item [{}] : [{}]", itemId, e.toString());
         }
         return value;
     }
@@ -159,14 +170,16 @@ public class DefaultApplication implements Application
                 Integer objNum = (Integer) objDocList.get(i)[1];
                 DocumentReference docRef = this.resolver.resolve(objName, this.wikiRef);
                 try {
+                    this.authorization.checkAccess(Right.VIEW, docRef);
                     BaseObject xObj = this.xwiki.getDocument(docRef, this.context).getXObject(this.xClassRef, objNum);
                     if (xObj != null) {
                         ApplicationItem item = new ApplicationItem(objName, objNum, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
                         ItemMap properties = item.getItemMap(true);
                         value.put("Item" + i, properties);
                     }
+                } catch (AccessDeniedException e) {
                 } catch (Exception e) {
-                    logger.warn("Unable to load the item number [{}]", i, e);
+                    logger.error("Unable to load the item [{}] : [{}]", objName, e.toString());
                 }
             }
         } catch (QueryException e) {
@@ -178,19 +191,35 @@ public class DefaultApplication implements Application
     @Override
     public Map<String, Object> storeItem(String itemId, ItemMap itemData) throws Exception {
         String objName = this.getDocNameFromId(itemId);
-        Integer objNumber = this.getObjNumberFromId(itemId);
-        BaseObject xObj = this.getObjectFromId(itemId);
-        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
-        return item.store(itemData);
+        DocumentReference itemDocRef = resolver.resolve(objName, this.wikiRef);
+        try {
+            this.authorization.checkAccess(Right.EDIT, itemDocRef);
+            Integer objNumber = this.getObjNumberFromId(itemId);
+            BaseObject xObj = this.getObjectFromId(itemId);
+            ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+            return item.store(itemData);
+        } catch(AccessDeniedException e) {
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put("Error", e.getMessage());
+            return errorMap;
+        }
     }
 
     @Override
     public Map<String, Object> deleteItem(String itemId) throws Exception {
         String objName = this.getDocNameFromId(itemId);
-        Integer objNumber = this.getObjNumberFromId(itemId);
-        BaseObject xObj = this.getObjectFromId(itemId);
-        ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
-        return item.delete();
+        DocumentReference itemDocRef = resolver.resolve(objName, this.wikiRef);
+        try {
+            this.authorization.checkAccess(Right.EDIT, itemDocRef);
+            Integer objNumber = this.getObjNumberFromId(itemId);
+            BaseObject xObj = this.getObjectFromId(itemId);
+            ApplicationItem item = new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.logger);
+            return item.delete();
+        } catch(AccessDeniedException e) {
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put("Error", e.getMessage());
+            return errorMap;
+        }
     }
     
     protected String getDocNameFromId(String objId) {
@@ -214,12 +243,13 @@ public class DefaultApplication implements Application
         DocumentReference itemDocRef = this.resolver.resolve(docName, this.wikiRef);
         return this.xwiki.getDocument(itemDocRef, this.context);
     }
-    protected BaseObject getObjectFromId(String objId) throws XWikiException {
+    protected BaseObject getObjectFromId(String objId) throws XWikiException, AccessDeniedException {
         Integer objNumber = this.getObjNumberFromId(objId);
         XWikiDocument xDoc = this.getDocFromId(objId);
         if (xDoc == null) {
             return null;
         }
+        this.authorization.checkAccess(Right.VIEW, xDoc.getDocumentReference());
         return xDoc.getXObject(this.xClassRef, objNumber);
     }
     

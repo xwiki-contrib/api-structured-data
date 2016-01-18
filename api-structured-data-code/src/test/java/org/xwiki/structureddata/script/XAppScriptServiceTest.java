@@ -46,9 +46,12 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryManager;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.structureddata.internal.ItemMap;
 import org.xwiki.test.mockito.MockitoComponentMockingRule;
 
@@ -88,6 +91,9 @@ public class XAppScriptServiceTest
         classRef = new DocumentReference("xwiki", "My", "Class");
         when(xcontext.getWiki().getXClass(classRef, xcontext)).thenReturn(myclass);
         when(xcontext.getWiki().getDocument(classRef, xcontext)).thenReturn(myclassdoc);
+
+        ContextualAuthorizationManager authorization = xApp.authorizationManager;
+        when(authorization.hasAccess((Right) any(), (EntityReference) any())).thenReturn(true);
 
         PropertyClass prop1 = mock(PropertyClass.class);
         StaticListClass prop2 = mock(StaticListClass.class);

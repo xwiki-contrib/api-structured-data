@@ -40,6 +40,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rest.XWikiResource;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.structureddata.internal.DefaultApplication;
 import org.xwiki.structureddata.Application;
 import org.xwiki.structureddata.internal.AWMApplication;
@@ -55,16 +56,18 @@ import org.xwiki.structureddata.internal.ItemMap;
 @Produces({ MediaType.APPLICATION_JSON })
 public class ItemResource extends XWikiResource 
 {
-   
     @Inject
     private DocumentReferenceResolver<String> resolver;
-    
+
     @Inject
     private Logger logger;
-    
+
     @Inject
     @Named("local")
     protected EntityReferenceSerializer<String> serializer;
+
+    @Inject
+    ContextualAuthorizationManager authorizationManager;
 
     /**
      * Get a map describing an item of the application.
@@ -81,11 +84,11 @@ public class ItemResource extends XWikiResource
         Application newApp;
         DocumentReference awmWebHomeRef = new DocumentReference(context.getWikiId(), appId, "WebHome");
         if(AWMApplication.isAWM(context, serializer, awmWebHomeRef) != null) {
-            newApp = new AWMApplication(context, resolver, serializer, logger, awmWebHomeRef);
+            newApp = new AWMApplication(context, authorizationManager, resolver, serializer, logger, awmWebHomeRef);
         }
         else {
             DocumentReference classRef = resolver.resolve(appId);
-            newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, classRef);
+            newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, classRef);
         }
         return newApp.getItem(itemId);
     }
@@ -109,11 +112,11 @@ public class ItemResource extends XWikiResource
         Application newApp;
         DocumentReference awmWebHomeRef = new DocumentReference(context.getWikiId(), appId, "WebHome");
         if(AWMApplication.isAWM(context, serializer, awmWebHomeRef) != null) {
-            newApp = new AWMApplication(context, resolver, serializer, logger, awmWebHomeRef);
+            newApp = new AWMApplication(context, authorizationManager, resolver, serializer, logger, awmWebHomeRef);
         }
         else {
             DocumentReference classRef = resolver.resolve(appId);
-            newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, classRef);
+            newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, classRef);
         }
         return newApp.storeItem(itemId, itemData);
     }
@@ -133,11 +136,11 @@ public class ItemResource extends XWikiResource
         Application newApp;
         DocumentReference awmWebHomeRef = new DocumentReference(context.getWikiId(), appId, "WebHome");
         if(AWMApplication.isAWM(context, serializer, awmWebHomeRef) != null) {
-            newApp = new AWMApplication(context, resolver, serializer, logger, awmWebHomeRef);
+            newApp = new AWMApplication(context, authorizationManager, resolver, serializer, logger, awmWebHomeRef);
         }
         else {
             DocumentReference classRef = resolver.resolve(appId);
-            newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, classRef);
+            newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, classRef);
         }
         return newApp.deleteItem(itemId);
     }

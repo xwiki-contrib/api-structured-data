@@ -100,7 +100,6 @@ public class ApplicationItem
             this.xObject = this.xClass.newCustomClassInstance(this.context);
             this.xObject.setXClassReference(this.xClass.getReference());
         }
-        System.out.println(this.xObject);
         // Get the properties map
         List<PropertyClass> propList = this.xClass.getEnabledProperties();
         for (int j = 0; j < propList.size(); ++j) {
@@ -110,7 +109,7 @@ public class ApplicationItem
                 Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
                 propValue = methodToFind.invoke(this.xObject.getField(key));
                 value.put(key, propValue);
-            } catch (NullPointerException | NoSuchMethodException e) {
+            } catch (NullPointerException e) {
                 try {
                     // If value is not set, set an empty value and try again
                     this.xObject.set(key, "", this.context);

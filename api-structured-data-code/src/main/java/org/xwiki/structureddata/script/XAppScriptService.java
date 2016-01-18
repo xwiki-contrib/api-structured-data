@@ -36,6 +36,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.query.QueryManager;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.structureddata.internal.AWMApplication;
 import org.xwiki.structureddata.Application;
 
@@ -53,15 +54,18 @@ public class XAppScriptService implements ScriptService
     protected Provider<XWikiContext> xcontextProvider;
 
     @Inject
+    protected ContextualAuthorizationManager authorizationManager;
+
+    @Inject
     protected QueryManager queryManager;
 
     @Inject
     protected DocumentReferenceResolver<String> resolver;
-    
+
     @Inject
     @Named("local")
     protected EntityReferenceSerializer<String> serializer;
-    
+
     @Inject
     private Logger logger;
 
@@ -78,16 +82,16 @@ public class XAppScriptService implements ScriptService
         Application newApp;
         DocumentReference awmWebHomeRef = new DocumentReference(context.getWikiId(), appId, "WebHome");
         if(AWMApplication.isAWM(context, serializer, awmWebHomeRef) != null) {
-            newApp = new AWMApplication(context, resolver, serializer, logger, awmWebHomeRef);
+            newApp = new AWMApplication(context, authorizationManager, resolver, serializer, logger, awmWebHomeRef);
         }
         else {
             // Check if the wiki name is specified in the string. If not, get the wiki of the current document
             if(appId.matches("(.+):(.+)[^\\\\]?\\.(.+)")) {
-                newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, resolver.resolve(appId));
+                newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, resolver.resolve(appId));
             }
             else {
                 WikiReference wikiRef = context.getDoc().getDocumentReference().getWikiReference();
-                newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, resolver.resolve(appId, wikiRef));
+                newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, resolver.resolve(appId, wikiRef));
             }
         }
         return newApp;
@@ -103,7 +107,7 @@ public class XAppScriptService implements ScriptService
     {
         XWikiContext context = this.xcontextProvider.get();
         
-        Application newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, classReference);
+        Application newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, classReference);
         return newApp;
     }
 
@@ -119,7 +123,7 @@ public class XAppScriptService implements ScriptService
         Application newApp = null;
         DocumentReference awmWebHomeRef = AWMApplication.isAWM(context, serializer);
         if(awmWebHomeRef != null) {
-            newApp = new AWMApplication(context, resolver, serializer, logger, awmWebHomeRef);
+            newApp = new AWMApplication(context, authorizationManager, resolver, serializer, logger, awmWebHomeRef);
         }
 
         return newApp;

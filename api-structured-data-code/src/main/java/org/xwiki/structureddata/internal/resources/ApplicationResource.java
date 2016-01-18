@@ -37,6 +37,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rest.XWikiResource;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.structureddata.internal.DefaultApplication;
 import org.xwiki.structureddata.Application;
 import org.xwiki.structureddata.internal.AWMApplication;
@@ -53,13 +54,16 @@ public class ApplicationResource extends XWikiResource
 {
     @Inject
     private DocumentReferenceResolver<String> resolver;
-    
+
     @Inject
     private Logger logger;
-    
+
     @Inject
     @Named("local")
     protected EntityReferenceSerializer<String> serializer;
+
+    @Inject
+    ContextualAuthorizationManager authorizationManager;
 
     /**
      * Get the data of the application.
@@ -75,11 +79,11 @@ public class ApplicationResource extends XWikiResource
         Application newApp;
         DocumentReference awmWebHomeRef = new DocumentReference(context.getWikiId(), appId, "WebHome");
         if(AWMApplication.isAWM(context, serializer, awmWebHomeRef) != null) {
-            newApp = new AWMApplication(context, resolver, serializer, logger, awmWebHomeRef);
+            newApp = new AWMApplication(context, authorizationManager, resolver, serializer, logger, awmWebHomeRef);
         }
         else {
             DocumentReference classRef = resolver.resolve(appId);
-            newApp = new DefaultApplication(context, resolver, serializer, queryManager, logger, classRef);
+            newApp = new DefaultApplication(context, authorizationManager, resolver, serializer, queryManager, logger, classRef);
         }
         result.put("Schema", newApp.getAppSchema());
         result.put("Items", newApp.getItems());
