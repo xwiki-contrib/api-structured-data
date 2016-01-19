@@ -31,6 +31,15 @@ import org.xwiki.model.reference.EntityReferenceSerializer;
 @SuppressWarnings("serial")
 public class ItemMap extends HashMap<String, Object> {
 
+    protected final static String AUTHOR = "author";
+    protected final static String CREATOR = "creator";
+    protected final static String CREATION = "creationDate";
+    protected final static String UPDATE = "updateDate";
+    protected final static String PARENT = "parent";
+    protected final static String HIDDEN = "hidden";
+    protected final static String TITLE = "title";
+    protected final static String CONTENT = "content";
+
     private String apiId;
     private DocumentMap docMap;
 
@@ -52,16 +61,16 @@ public class ItemMap extends HashMap<String, Object> {
     }
 
     protected void setXDoc(XWikiDocument xDoc, EntityReferenceSerializer<String> serializer) {
-        DocumentMap docMap = new DocumentMap();
-        docMap.put("author", xDoc.getAuthorReference());
-        docMap.put("creator", xDoc.getCreatorReference());
-        docMap.put("creationDate", xDoc.getCreationDate());
-        docMap.put("updateDate", xDoc.getContentUpdateDate());
-        docMap.put("parent", xDoc.getParentReference());
-        docMap.put("hidden", xDoc.isHidden());
-        docMap.put("title", xDoc.getTitle());
-        docMap.put("content", xDoc.getContent());
-        this.docMap = docMap;
+        DocumentMap docMapTmp = new DocumentMap();
+        docMapTmp.put(AUTHOR, xDoc.getAuthorReference());
+        docMapTmp.put(CREATOR, xDoc.getCreatorReference());
+        docMapTmp.put(CREATION, xDoc.getCreationDate());
+        docMapTmp.put(UPDATE, xDoc.getContentUpdateDate());
+        docMapTmp.put(PARENT, xDoc.getParentReference());
+        docMapTmp.put(HIDDEN, xDoc.isHidden());
+        docMapTmp.put(TITLE, xDoc.getTitle());
+        docMapTmp.put(CONTENT, xDoc.getContent());
+        this.docMap = docMapTmp;
     }
 
     public DocumentMap getDocumentFields() {

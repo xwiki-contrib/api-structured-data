@@ -116,8 +116,9 @@ public class DefaultApplication implements Application
         try {
             String objName = this.getDocNameFromId(itemId);
             Integer objNumber = this.getObjNumberFromId(itemId);
+            XWikiDocument xDoc = this.getDocFromId(itemId);
             BaseObject xObj = this.getObjectFromId(itemId);
-            ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj);
+            ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj, xDoc);
             value = item.getItemMap();
         } catch (AccessDeniedException e) {
         } catch (Exception e) {
@@ -173,9 +174,10 @@ public class DefaultApplication implements Application
                 DocumentReference docRef = this.resolver.resolve(objName, this.wikiRef);
                 try {
                     this.authorization.checkAccess(Right.VIEW, docRef);
-                    BaseObject xObj = this.xwiki.getDocument(docRef, this.context).getXObject(this.xClassRef, objNumber);
+                    XWikiDocument xDoc = this.xwiki.getDocument(docRef, this.context);
+                    BaseObject xObj = xDoc.getXObject(this.xClassRef, objNumber);
                     if (xObj != null) {
-                        ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj);
+                        ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj, xDoc);
                         ItemMap properties = item.getItemMap();
                         value.put(properties.getId(), properties);
                     }
@@ -198,8 +200,9 @@ public class DefaultApplication implements Application
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             Integer objNumber = this.getObjNumberFromId(itemId);
+            XWikiDocument xDoc = this.getDocFromId(itemId);
             BaseObject xObj = this.getObjectFromId(itemId);
-            ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj);
+            ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj, xDoc);
             return item.store(itemData);
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
@@ -215,8 +218,9 @@ public class DefaultApplication implements Application
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             Integer objNumber = this.getObjNumberFromId(itemId);
+            XWikiDocument xDoc = this.getDocFromId(itemId);
             BaseObject xObj = this.getObjectFromId(itemId);
-            ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj);
+            ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj, xDoc);
             return item.delete();
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
@@ -256,8 +260,8 @@ public class DefaultApplication implements Application
         return xDoc.getXObject(this.xClassRef, objNumber);
     }
 
-    private ApplicationItem getApplicationItem(String objName, Integer objNumber, BaseObject xObj) throws XWikiException {
-        return new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.serializer, this.logger);
+    private ApplicationItem getApplicationItem(String objName, Integer objNumber, BaseObject xObj, XWikiDocument xDoc) throws XWikiException {
+        return new ApplicationItem(objName, objNumber, xDoc, xObj, this.xClass, this.context, this.resolver, this.serializer, this.logger);
     }
     
     @Override

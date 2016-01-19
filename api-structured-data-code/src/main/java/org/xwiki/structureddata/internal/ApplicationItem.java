@@ -19,7 +19,6 @@
  */
 package org.xwiki.structureddata.internal;
 
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -37,7 +36,6 @@ import org.slf4j.Logger;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.WikiReference;
 
 /**
  * An item in an XWikiApplication.
@@ -53,7 +51,7 @@ public class ApplicationItem
     private XWikiContext context;
     private XWikiDocument xDoc;
     private BaseClass xClass;
-    private String docName;
+    private String itemId;
     private Integer objNumber;
     private EntityReferenceSerializer<String> serializer;
     private DocumentReferenceResolver<String> resolver;
@@ -61,33 +59,31 @@ public class ApplicationItem
 
     /**
      * Create an item.
-     * @param docName the document full name in which the item is located
+     * @param itemId the document full name in which the item is located
      * @param objNumber the item number in the document
+     * @param xDoc 
      * @param xObject the BaseObject representing the item in XWiki
      * @param xClass the BaseClass of the item
-     * @param wikiRef the wiki reference of the item
      * @param context the wiki context
      * @param resolver the document reference resolver
      * @param serializer 
      * @param logger 
      * @throws XWikiException 
      */
-    public ApplicationItem(String docName, 
-            Integer objNumber, 
+    public ApplicationItem(String itemId, 
+            Integer objNumber,
+            XWikiDocument xDoc,
             BaseObject xObject, 
             BaseClass xClass,
-            WikiReference wikiRef,
             XWikiContext context, 
             DocumentReferenceResolver<String> resolver,
             EntityReferenceSerializer<String> serializer,
             Logger logger) throws XWikiException {
-        XWiki xwiki = context.getWiki();
-        DocumentReference docRef = resolver.resolve(docName, wikiRef);
-        this.xDoc = xwiki.getDocument(docRef, context);
+        this.xDoc = xDoc;
         this.xObject = xObject;
         this.context = context;
         this.xClass = xClass;
-        this.docName = docName;
+        this.itemId = itemId;
         this.objNumber = objNumber;
         this.serializer = serializer;
         this.resolver = resolver;
@@ -124,12 +120,12 @@ public class ApplicationItem
                     propValue = methodToFind.invoke(this.xObject.getField(key));
                     value.put(key, propValue);
                 } catch (NullPointerException | NoSuchMethodException f) {
-                    logger.error("Can't find the value of property [{}] in item [{}]", key, this.docName);
+                    logger.error("Can't find the value of property [{}] in item [{}]", key, this.itemId);
                 }
             }
         }
         ItemMap objectMap;
-        String id = this.docName;
+        String id = this.itemId;
         if (this.objNumber > 0) {
             id = id + "|" + this.objNumber.toString();
         }
@@ -160,17 +156,9 @@ public class ApplicationItem
                 this.xObject.set(key, value, this.context);
             }
             this.xDoc.setAuthorReference(context.getUserReference());
-            if(item.getDocumentFields() != null && item.getDocumentFields().size() >= 8) {
-                DocumentMap docMap = item.getDocumentFields();
-                this.xDoc.setAuthorReference((DocumentReference) docMap.get("author"));
-                this.xDoc.setCreatorReference((DocumentReference) docMap.get("creator"));
-                this.xDoc.setCreationDate((Date) docMap.get("creationDate"));
-                this.xDoc.setContentUpdateDate((Date) docMap.get("updateDate"));
-                this.xDoc.setParentReference((DocumentReference) docMap.get("parent"));
-                this.xDoc.setHidden((Boolean) docMap.get("hidden"));
-                this.xDoc.setTitle((String) docMap.get("title"));
-                this.xDoc.setContent((String) docMap.get("content"));
-            }
+            // Save the document fields if they have been changed. If the author has been changed in the item, 
+            // it will override the previous line which set the author as the current user
+            this.updateDocumentFields(item);
             this.context.getWiki().saveDocument(this.xDoc, "Properties updated", this.context);
             result.put(ApplicationItem.SUCCESS, "1");
         } catch (Exception e) {
@@ -215,5 +203,28 @@ public class ApplicationItem
         }
         this.context.getWiki().saveDocument(this.xDoc, this.context);
         return newObj;
+    }
+
+    private void updateDocumentFields(ItemMap item) {
+        if(item.getDocumentFields() != null && item.getDocumentFields().size() >= 8) {
+            DocumentMap docMap = item.getDocumentFields();
+            if(docMap.changes.contains(ItemMap.AUTHOR))
+                this.xDoc.setAuthorReference((DocumentReference) docMap.get(ItemMap.AUTHOR));
+            if(docMap.changes.contains(ItemMap.CREATOR))
+                this.xDoc.setCreatorReference((DocumentReference) docMap.get(ItemMap.CREATOR));
+            if(docMap.changes.contains(ItemMap.CREATION))
+                this.xDoc.setCreationDate((Date) docMap.get(ItemMap.CREATION));
+            if(docMap.changes.contains(ItemMap.UPDATE))
+                this.xDoc.setContentUpdateDate((Date) docMap.get(ItemMap.UPDATE));
+            if(docMap.changes.contains(ItemMap.PARENT))
+                this.xDoc.setParentReference((DocumentReference) docMap.get(ItemMap.PARENT));
+            if(docMap.changes.contains(ItemMap.HIDDEN))
+                this.xDoc.setHidden((Boolean) docMap.get(ItemMap.HIDDEN));
+            if(docMap.changes.contains(ItemMap.TITLE))
+                this.xDoc.setTitle((String) docMap.get(ItemMap.TITLE));
+            if(docMap.changes.contains(ItemMap.CONTENT))
+                this.xDoc.setContent((String) docMap.get(ItemMap.CONTENT));
+            docMap.changes.clear();
+        }
     }
 }

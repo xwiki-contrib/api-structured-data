@@ -20,6 +20,8 @@
 package org.xwiki.structureddata.internal;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Displays document fields.
@@ -29,6 +31,8 @@ import java.util.HashMap;
 @SuppressWarnings("serial")
 public class DocumentMap extends HashMap<String, Object> {
 
+    protected Set<String> changes = new HashSet<>();
+
     /**
      * Change the value associated to a key in the map.
      * @param key the String key
@@ -36,6 +40,7 @@ public class DocumentMap extends HashMap<String, Object> {
      */
     public void set(String key, Object value)
     {
+        this.changes.add(key);
         this.put(key, value);
     }
 }

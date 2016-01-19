@@ -111,8 +111,9 @@ public class AWMApplication implements Application
         ItemMap value = new ItemMap();
         try {
             String objId = this.dataSpace+"."+itemId;
+            XWikiDocument xDoc = this.getDocFromId(objId);
             BaseObject xObj = this.getObjectFromId(objId);
-            ApplicationItem item = this.getApplicationItem(itemId, 0, xObj);
+            ApplicationItem item = this.getApplicationItem(itemId, 0, xObj, xDoc);
             value = item.getItemMap();
         } catch (AccessDeniedException e) {
         } catch (Exception e) {
@@ -155,9 +156,10 @@ public class AWMApplication implements Application
                 // Try to load the item
                 // "getObjectFromId" will check for "view" access rights (AccessDeniedException)
                 try {
+                    XWikiDocument xDoc = this.getDocFromId(docFullName);
                     BaseObject xObj = this.getObjectFromId(docFullName);
                     if (xObj != null) {
-                        ApplicationItem item = this.getApplicationItem(docName, 0, xObj);
+                        ApplicationItem item = this.getApplicationItem(docName, 0, xObj, xDoc);
                         ItemMap map = item.getItemMap();
                         value.put(map.getId(), map);
                     }
@@ -199,8 +201,9 @@ public class AWMApplication implements Application
         DocumentReference itemDocRef = resolver.resolve(objName, this.wikiRef);
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
+            XWikiDocument xDoc = this.getDocFromId(objName);
             BaseObject xObj = this.getObjectFromId(objName);
-            ApplicationItem item = this.getApplicationItem(objName, 0, xObj);
+            ApplicationItem item = this.getApplicationItem(objName, 0, xObj, xDoc);
             return item.store(itemData);
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
@@ -215,8 +218,9 @@ public class AWMApplication implements Application
         DocumentReference itemDocRef = resolver.resolve(objName, this.wikiRef);
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
+            XWikiDocument xDoc = this.getDocFromId(objName);
             BaseObject xObj = this.getObjectFromId(objName);
-            ApplicationItem item = this.getApplicationItem(objName, 0, xObj);
+            ApplicationItem item = this.getApplicationItem(objName, 0, xObj, xDoc);
             return item.delete();
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
@@ -312,7 +316,7 @@ public class AWMApplication implements Application
      * @return the XWikiDocument containing the object
      * @throws XWikiException 
      */
-    private XWikiDocument getDocFromId(String itemId) throws XWikiException 
+    public XWikiDocument getDocFromId(String itemId) throws XWikiException 
     {
         DocumentReference itemDocRef = this.resolver.resolve(itemId, this.wikiRef);
         return this.xwiki.getDocument(itemDocRef, this.context);
@@ -332,8 +336,8 @@ public class AWMApplication implements Application
         return xDoc.getXObject(this.xClassRef);
     }
 
-    private ApplicationItem getApplicationItem(String objName, Integer objNumber, BaseObject xObj) throws XWikiException {
-        return new ApplicationItem(objName, objNumber, xObj, this.xClass, this.wikiRef, this.context, this.resolver, this.serializer, this.logger);
+    private ApplicationItem getApplicationItem(String objName, Integer objNumber, BaseObject xObj, XWikiDocument xDoc) throws XWikiException {
+        return new ApplicationItem(objName, objNumber, xDoc, xObj, this.xClass, this.context, this.resolver, this.serializer, this.logger);
     }
 
     @Override
