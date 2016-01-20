@@ -42,6 +42,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
 import org.xwiki.rest.XWikiResource;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.structureddata.Application;
@@ -75,17 +77,25 @@ public class ApplicationsFromWikiResource extends XWikiResource
     
     /**
      * Get a list of the classes/applications in the wiki.
+     * @param wikiName the name of the selected wiki
      * @return a map containing the list of classes
      * @throws XWikiException 
+     * @throws QueryException
      */
     @GET
-    public Map<String, Object> getAppList() throws XWikiException
+    public Map<String, Object> getAppList(@PathParam("wikiName") String wikiName) throws XWikiException, QueryException
     {
         XWikiContext context = xcontextProvider.get();
         Map<String, Object> result = new HashMap<>();
         XWiki xwiki = context.getWiki();
         List<String> classList = xwiki.getClassList(context);
-        result.put("Applications list", classList);
+        String queryString = "select doc.name"
+                + " from Document doc, doc.object(AppWithinMinutes.LiveTableClass) as item"
+                + " order by doc.name";
+        Query query = queryManager.createQuery(queryString, Query.XWQL);
+        List<String> awmList = query.setWiki(wikiName).execute();
+        result.put("AWM Applications", awmList);
+        result.put("XWiki Classes", classList);
         return result;
     }
     

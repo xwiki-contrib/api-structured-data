@@ -1,8 +1,11 @@
 define(['jquery'], function ($) {
 
-  var getApp = function (appId) {
+  var getApp = function (appId, wiki) {
 
-
+    var addWikiPath = '';
+    if(wiki) {
+        addWikiPath = 'wikis/'+wiki+'/';
+    }
     var getItems = function(options, callback) {
       // getItems() should work with or without the "options" parameter. If "options" is not provided, the first arg is the callback.
       if(typeof callback === 'undefined' && typeof options === 'function') { 
@@ -10,7 +13,7 @@ define(['jquery'], function ($) {
         options = {};
       }
       $.ajax({
-        url : '/xwiki/rest/applications/'+encodeURIComponent(appId)+'/items',
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/items',
         type: "GET",
         data: $.param(options)
       }).success(function(data){
@@ -22,7 +25,7 @@ define(['jquery'], function ($) {
 
     var getAppSchema = function(callback) {
       $.ajax({
-        url : '/xwiki/rest/applications/'+encodeURIComponent(appId)+'/schema',
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/schema',
         type: "GET"
       }).success(function(data){
         callback(null, data);
@@ -33,7 +36,7 @@ define(['jquery'], function ($) {
 
     var getItem = function(itemId, callback) {
       $.ajax({
-        url : '/xwiki/rest/applications/'+encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
         type: "GET"
       }).success(function(data){
         callback(null, data);
@@ -44,7 +47,7 @@ define(['jquery'], function ($) {
 
     var storeItem = function(itemId, itemData, callback) {
       $.ajax({
-        url : '/xwiki/rest/applications/'+encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
         type: "PUT",
         contentType : "application/json",
         data: JSON.stringify(itemData)
@@ -57,7 +60,7 @@ define(['jquery'], function ($) {
 
     var deleteItem = function(itemId, callback) {
       $.ajax({
-        url : '/xwiki/rest/applications/'+encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
         type: "DELETE"
       }).success(function(data){
         callback(null, data);
