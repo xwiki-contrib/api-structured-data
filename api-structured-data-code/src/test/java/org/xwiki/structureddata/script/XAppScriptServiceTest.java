@@ -44,8 +44,9 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.query.Query;
@@ -130,7 +131,7 @@ public class XAppScriptServiceTest
     public void testGetItems() throws Exception
     {
         QueryManager qm = xApp.queryManager;
-        DocumentReferenceResolver<String> resolver = xApp.resolver; 
+        EntityReferenceResolver<String> resolver = xApp.resolver; 
         EntityReferenceSerializer<String> serializer = xApp.serializer;
         when(serializer.serialize(classRef)).thenReturn("My.Class");
 
@@ -165,7 +166,7 @@ public class XAppScriptServiceTest
     @Test
     public void testGetItem() throws Exception
     {
-        DocumentReferenceResolver<String> resolver = xApp.resolver;
+        EntityReferenceResolver<String> resolver = xApp.resolver;
         
         // Create an item 
         DocumentReference objDocRef = new DocumentReference("xwiki", "MyClassData", "Item1");
@@ -179,7 +180,7 @@ public class XAppScriptServiceTest
     @Test
     public void testStoreItem() throws XWikiException, Exception
     {
-        DocumentReferenceResolver<String> resolver = xApp.resolver;
+        EntityReferenceResolver<String> resolver = xApp.resolver;
         
         // Create the initial object
         DocumentReference objDocRef = new DocumentReference("xwiki", "MyClassData", "Item");
@@ -206,7 +207,7 @@ public class XAppScriptServiceTest
     @Test
     public void testDeleteItem() throws XWikiException, Exception
     {
-        DocumentReferenceResolver<String> resolver = xApp.resolver;
+        EntityReferenceResolver<String> resolver = xApp.resolver;
         
         // Create the initial object
         DocumentReference objDocRef = new DocumentReference("xwiki", "MyClassData", "Item");
@@ -226,12 +227,12 @@ public class XAppScriptServiceTest
         verify(xcontext.getWiki()).saveDocument(doc, xcontext);
     }
 
-    private ItemMap createObject(DocumentReferenceResolver<String> resolver, String docName, DocumentReference docRef, String valueProp1, String valueProp2) throws XWikiException
+    private ItemMap createObject(EntityReferenceResolver<String> resolver, String docName, DocumentReference docRef, String valueProp1, String valueProp2) throws XWikiException
     {
         XWikiDocument objDoc = mock(XWikiDocument.class);
         String objDocName = docName;
         BaseObject obj = mock(BaseObject.class);
-        when(resolver.resolve(eq(objDocName), any())).thenReturn(docRef);
+        when(resolver.resolve(eq(objDocName), eq(EntityType.DOCUMENT), any())).thenReturn(docRef);
         when(xcontext.getWiki().getDocument(docRef, xcontext)).thenReturn(objDoc);
         when(objDoc.getXObject(classRef, 0)).thenReturn(obj);
         StringProperty prop1Obj = mock(StringProperty.class);

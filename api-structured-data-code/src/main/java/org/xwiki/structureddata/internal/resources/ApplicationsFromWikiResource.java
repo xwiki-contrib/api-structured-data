@@ -30,7 +30,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -39,7 +38,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
-
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
@@ -53,14 +51,14 @@ import org.xwiki.structureddata.internal.DocumentMap;
 import org.xwiki.structureddata.internal.ItemMap;
 
 /**
- * Rest ressource for Application in the current wiki.
+ * Rest ressource for Application in the selected wiki.
  * 
  * @version $Id$
  */
-@Component("org.xwiki.structureddata.internal.resources.ApplicationsResource")
-@Path("/applications/")
+@Component("org.xwiki.structureddata.internal.resources.ApplicationsFromWikiResource")
+@Path("/wikis/{wikiName}/applications/")
 @Produces({ MediaType.APPLICATION_JSON })
-public class ApplicationsResource extends XWikiResource 
+public class ApplicationsFromWikiResource extends XWikiResource
 {
     @Inject
     private EntityReferenceResolver<String> resolver;
@@ -74,7 +72,7 @@ public class ApplicationsResource extends XWikiResource
 
     @Inject
     ContextualAuthorizationManager authorization;
-
+    
     /**
      * Get a list of the classes/applications in the wiki.
      * @return a map containing the list of classes
@@ -90,81 +88,89 @@ public class ApplicationsResource extends XWikiResource
         result.put("Applications list", classList);
         return result;
     }
-
+    
     @Path("{appName}")
     @GET
-    public Map<String, Object> get(@PathParam("appName") String appId) throws Exception
+    public Map<String, Object> get(@PathParam("wikiName") String wikiName,
+            @PathParam("appName") String appId) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(wikiName, appId);
         return ApplicationResource.getResource(app);
     }
 
     @Path("{appName}/schema")
     @GET
-    public Map<String, Object> getSchema(@PathParam("appName") String appId) throws Exception
+    public Map<String, Object> getSchema(@PathParam("wikiName") String wikiName,
+            @PathParam("appName") String appId) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(wikiName, appId);
         return app.getSchema();
     }
 
     @Path("{appName}/items")
     @GET
-    public Map<String, Object> getItems(@PathParam("appName") String appId, 
+    public Map<String, Object> getItems(@PathParam("wikiName") String wikiName,
+            @PathParam("appName") String appId, 
             @QueryParam("limit") String limit, 
             @QueryParam("offset") String offset, 
             @QueryParam("query") String query) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(wikiName, appId);
         return ItemsResource.getResource(app, limit, offset, query);
     }
 
     @Path("{appName}/items/{itemId}")
     @GET
-    public Map<String, Object> getItem(@PathParam("appName") String appId, 
+    public Map<String, Object> getItem(@PathParam("wikiName") String wikiName,
+            @PathParam("appName") String appId, 
             @PathParam("itemId") String itemId) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(wikiName, appId);
         return app.getItem(itemId);
     }
 
     @Path("{appName}/items/{itemId}")
     @PUT
     @Consumes({ MediaType.APPLICATION_JSON })
-    public Map<String, Object> storeItem(@PathParam("appName") String appId, 
+    public Map<String, Object> storeItem(@PathParam("wikiName") String wikiName,
+            @PathParam("appName") String appId, 
             @PathParam("itemId") String itemId,
             String jsonRequest) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(wikiName, appId);
         ItemMap itemData = new ObjectMapper().readValue(jsonRequest, ItemMap.class);
         return app.storeItem(itemData);
     }
 
     @Path("{appName}/items/{itemId}")
     @DELETE
-    public Map<String, Object> deleteItem(@PathParam("appName") String appId, 
+    public Map<String, Object> deleteItem(@PathParam("wikiName") String wikiName,
+            @PathParam("appName") String appId, 
             @PathParam("itemId") String itemId) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(wikiName, appId);
         return app.deleteItem(itemId);
     }
 
     @Path("{appName}/items/{itemId}/document")
     @GET
-    public Map<String, Object> getItemDocument(@PathParam("appName") String appId, 
+    public Map<String, Object> getItemDocument(@PathParam("wikiName") String wikiName,
+            @PathParam("appName") String appId, 
             @PathParam("itemId") String itemId) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(wikiName, appId);
         return app.getItem(itemId).getDocumentFields();
     }
 
     @Path("{appName}/items/{itemId}/document")
     @PUT
     @Consumes({ MediaType.APPLICATION_JSON })
-    public Map<String, Object> storeItemDocument(@PathParam("appName") String appId, 
+    public Map<String, Object> storeItemDocument(@PathParam("wikiName") String wikiName,
+            @PathParam("appName") String appId, 
             @PathParam("itemId") String itemId,
             String jsonRequest) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(wikiName, appId);
         DocumentMap docData = new ObjectMapper().readValue(jsonRequest, DocumentMap.class);
         ItemMap item = app.getItem(itemId);
         item.setDocumentFieldsMap(docData);

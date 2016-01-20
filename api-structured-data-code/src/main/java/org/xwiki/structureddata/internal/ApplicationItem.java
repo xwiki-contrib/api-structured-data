@@ -33,8 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 
 /**
@@ -54,7 +55,7 @@ public class ApplicationItem
     private String itemId;
     private Integer objNumber;
     private EntityReferenceSerializer<String> serializer;
-    private DocumentReferenceResolver<String> resolver;
+    private EntityReferenceResolver<String> resolver;
     private Logger logger;
 
     /**
@@ -76,7 +77,7 @@ public class ApplicationItem
             BaseObject xObject, 
             BaseClass xClass,
             XWikiContext context, 
-            DocumentReferenceResolver<String> resolver,
+            EntityReferenceResolver<String> resolver,
             EntityReferenceSerializer<String> serializer,
             Logger logger) throws XWikiException {
         this.xDoc = xDoc;
@@ -120,7 +121,7 @@ public class ApplicationItem
                     propValue = methodToFind.invoke(this.xObject.getField(key));
                     value.put(key, propValue);
                 } catch (NullPointerException | NoSuchMethodException f) {
-                    logger.error("Can't find the value of property [{}] in item [{}]", key, this.itemId);
+                    //logger.info("Can't find the value of property [{}] in item [{}]", key, this.itemId);
                 }
             }
         }
@@ -209,15 +210,15 @@ public class ApplicationItem
         if(item.getDocumentFields() != null && item.getDocumentFields().size() >= 8) {
             DocumentMap docMap = item.getDocumentFields();
             if(docMap.changes.contains(ItemMap.AUTHOR))
-                this.xDoc.setAuthorReference((DocumentReference) docMap.get(ItemMap.AUTHOR));
+                this.xDoc.setAuthorReference((DocumentReference) resolver.resolve((String) docMap.get(ItemMap.AUTHOR), EntityType.DOCUMENT));
             if(docMap.changes.contains(ItemMap.CREATOR))
-                this.xDoc.setCreatorReference((DocumentReference) docMap.get(ItemMap.CREATOR));
+                this.xDoc.setCreatorReference((DocumentReference) resolver.resolve((String) docMap.get(ItemMap.CREATOR), EntityType.DOCUMENT));
             if(docMap.changes.contains(ItemMap.CREATION))
                 this.xDoc.setCreationDate((Date) docMap.get(ItemMap.CREATION));
             if(docMap.changes.contains(ItemMap.UPDATE))
                 this.xDoc.setContentUpdateDate((Date) docMap.get(ItemMap.UPDATE));
             if(docMap.changes.contains(ItemMap.PARENT))
-                this.xDoc.setParentReference((DocumentReference) docMap.get(ItemMap.PARENT));
+                this.xDoc.setParentReference(resolver.resolve((String) docMap.get(ItemMap.PARENT), EntityType.DOCUMENT));
             if(docMap.changes.contains(ItemMap.HIDDEN))
                 this.xDoc.setHidden((Boolean) docMap.get(ItemMap.HIDDEN));
             if(docMap.changes.contains(ItemMap.TITLE))

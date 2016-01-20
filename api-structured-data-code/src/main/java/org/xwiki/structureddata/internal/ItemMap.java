@@ -62,15 +62,30 @@ public class ItemMap extends HashMap<String, Object> {
 
     protected void setXDoc(XWikiDocument xDoc, EntityReferenceSerializer<String> serializer) {
         DocumentMap docMapTmp = new DocumentMap();
-        docMapTmp.put(AUTHOR, xDoc.getAuthorReference());
-        docMapTmp.put(CREATOR, xDoc.getCreatorReference());
+        String xwikiId;
+        try {
+            xwikiId = xDoc.getDocumentReference().getWikiReference().getName() + ":";
+        } catch(Exception e) {
+            xwikiId = "";
+        }
+        docMapTmp.put(AUTHOR, xwikiId + serializer.serialize(xDoc.getAuthorReference()));
+        docMapTmp.put(CREATOR, xwikiId + serializer.serialize(xDoc.getCreatorReference()));
         docMapTmp.put(CREATION, xDoc.getCreationDate());
         docMapTmp.put(UPDATE, xDoc.getContentUpdateDate());
-        docMapTmp.put(PARENT, xDoc.getParentReference());
+        docMapTmp.put(PARENT, xwikiId + serializer.serialize(xDoc.getParentReference()));
         docMapTmp.put(HIDDEN, xDoc.isHidden());
         docMapTmp.put(TITLE, xDoc.getTitle());
         docMapTmp.put(CONTENT, xDoc.getContent());
         this.docMap = docMapTmp;
+    }
+
+    /**
+     * Change the document fields Map associated to that ItemMap
+     * @param docMap 
+     */
+    public void setDocumentFieldsMap(DocumentMap docMap)
+    {
+        this.docMap = docMap;
     }
 
     public DocumentMap getDocumentFields() {

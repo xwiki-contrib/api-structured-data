@@ -31,8 +31,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.query.Query;
@@ -56,7 +57,7 @@ public class DefaultApplication implements Application
 
     private QueryManager queryManager;
     private ContextualAuthorizationManager authorization;
-    private DocumentReferenceResolver<String> resolver;
+    private EntityReferenceResolver<String> resolver;
     private EntityReferenceSerializer<String> serializer;
     private Logger logger;
 
@@ -80,7 +81,7 @@ public class DefaultApplication implements Application
      */
     public DefaultApplication(XWikiContext context,
             ContextualAuthorizationManager authorizationManager,
-            DocumentReferenceResolver<String> resolver, 
+            EntityReferenceResolver<String> resolver, 
             EntityReferenceSerializer<String> serializer,
             QueryManager queryManager,
             Logger logger, 
@@ -137,41 +138,14 @@ public class DefaultApplication implements Application
     @Override
     public Map<String, Object> getItems(Map<String, Object> options) throws QueryException, XWikiException {
         Map<String, Object> value = new HashMap<>();
-        String queryOpt = "query";
-        String limitOpt = "limit";
-        String offsetOpt = "offset";
         try {
-            // Create a filter to remove class templates from the results
-            String templateFilter = "and item.name <> '" +  this.xClassFullName + "Template' ";
-            if (this.xClassFullName.length() > 5 && this.xClassFullName.endsWith("Class")) {
-                String shortClassName = this.xClassFullName.substring(0, this.xClassFullName.length()-5);
-                templateFilter += "and item.name <> '" + shortClassName + "Template' ";
-            }
-            // Search query
-            String queryString = "select item.name, item.number "
-                    + "from Document doc, doc.object( " + this.xClassFullName + " ) as item "
-                    + "where 1=1 " + templateFilter;
-            // Add the additional filter from the "options" parameter
-            if (options.containsKey(queryOpt)) {
-                String whereClause = (String) options.get(queryOpt);
-                queryString += "and " + whereClause;
-            }
-            queryString += " order by item.name, item.number";
-            // Execute the query
-            Query query = this.queryManager.createQuery(queryString, Query.XWQL);
-            // Filter the results depending on optionnal parameters
-            if (options.containsKey(limitOpt)) {
-                query = query.setLimit((Integer) options.get(limitOpt));
-            }
-            if (options.containsKey(offsetOpt)) {
-                query = query.setOffset((Integer) options.get(offsetOpt));
-            }
+            Query query = QueryItems.getQuery(queryManager, xClassFullName, options, "1=1", "item.name, item.number");
             List<Object[]> objDocList = query.setWiki(this.wikiRef.getName()).execute();
             for (int i = 0; i < objDocList.size(); ++i) {
                 // Get all instances of the class in the document
                 String objName = (String) objDocList.get(i)[0];
                 Integer objNumber = (Integer) objDocList.get(i)[1];
-                DocumentReference docRef = this.resolver.resolve(objName, this.wikiRef);
+                DocumentReference docRef = new DocumentReference(this.resolver.resolve(objName, EntityType.DOCUMENT, this.wikiRef));
                 try {
                     this.authorization.checkAccess(Right.VIEW, docRef);
                     XWikiDocument xDoc = this.xwiki.getDocument(docRef, this.context);
@@ -196,7 +170,7 @@ public class DefaultApplication implements Application
     public Map<String, Object> storeItem(ItemMap itemData) throws Exception {
         String itemId = itemData.getId();
         String objName = this.getDocNameFromId(itemId);
-        DocumentReference itemDocRef = resolver.resolve(objName, this.wikiRef);
+        DocumentReference itemDocRef = new DocumentReference(resolver.resolve(objName, EntityType.DOCUMENT, this.wikiRef));
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             Integer objNumber = this.getObjNumberFromId(itemId);
@@ -214,7 +188,7 @@ public class DefaultApplication implements Application
     @Override
     public Map<String, Object> deleteItem(String itemId) throws Exception {
         String objName = this.getDocNameFromId(itemId);
-        DocumentReference itemDocRef = resolver.resolve(objName, this.wikiRef);
+        DocumentReference itemDocRef = new DocumentReference(resolver.resolve(objName, EntityType.DOCUMENT, this.wikiRef));
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             Integer objNumber = this.getObjNumberFromId(itemId);
@@ -247,7 +221,7 @@ public class DefaultApplication implements Application
     }
     protected XWikiDocument getDocFromId(String objId) throws XWikiException {
         String docName = this.getDocNameFromId(objId);
-        DocumentReference itemDocRef = this.resolver.resolve(docName, this.wikiRef);
+        DocumentReference itemDocRef = new DocumentReference(this.resolver.resolve(docName, EntityType.DOCUMENT, this.wikiRef));
         return this.xwiki.getDocument(itemDocRef, this.context);
     }
     protected BaseObject getObjectFromId(String objId) throws XWikiException, AccessDeniedException {

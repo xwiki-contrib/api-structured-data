@@ -31,11 +31,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
@@ -48,10 +52,11 @@ import org.xwiki.structureddata.Application;
  */
 public class AWMApplication implements Application
 {
-    private DocumentReferenceResolver<String> resolver;
+    private EntityReferenceResolver<String> resolver;
     private EntityReferenceSerializer<String> serializer;
     private Logger logger;
 
+    private QueryManager queryManager;
     private BaseClass xClass;
     private DocumentReference xClassRef;
     private WikiReference wikiRef;
@@ -63,17 +68,20 @@ public class AWMApplication implements Application
 
     public AWMApplication(XWikiContext context,
             ContextualAuthorizationManager authorizationManager,
-            DocumentReferenceResolver<String> resolver,
+            EntityReferenceResolver<String> resolver,
             EntityReferenceSerializer<String> serializer,
+            QueryManager queryManager,
             Logger logger, 
             DocumentReference appWebHomeRef) throws XWikiException 
     {
         this.context = context;
+        this.queryManager = queryManager;
         this.resolver = resolver;
         this.serializer = serializer;
         this.logger = logger;
         this.xwiki = context.getWiki();
         this.authorization = authorizationManager;
+
         // Get the class reference from the AppWithinMinutes.LiveTableClass object
         BaseObject item;
         if(appWebHomeRef != null) {
@@ -82,8 +90,11 @@ public class AWMApplication implements Application
         else {
             item = getAWMObject(context, serializer);
         }
-        this.wikiRef = context.getDoc().getDocumentReference().getWikiReference();
-        DocumentReference classReference = resolver.resolve(item.getStringValue("class"), this.wikiRef);
+        if(appWebHomeRef != null)
+            this.wikiRef = appWebHomeRef.getWikiReference();
+        else
+            this.wikiRef = context.getDoc().getDocumentReference().getWikiReference();
+        DocumentReference classReference = new DocumentReference(resolver.resolve(item.getStringValue("class"), EntityType.DOCUMENT, this.wikiRef));
         this.xClassRef = classReference;
         this.xClass = this.xwiki.getXClass(classReference, context);
         // Get data space
@@ -132,29 +143,15 @@ public class AWMApplication implements Application
     @Override
     public Map<String, Object> getItems(Map<String, Object> options) throws Exception {
         Map<String, Object> value = new HashMap<>();
-        // Get the items list
-        List<String> itemsList = xwiki.getSpaceDocsName(dataSpace, context);
-        Collections.sort(itemsList);
-        // Get the selected sublist
-        String limitOpt = "limit";
-        String offsetOpt = "offset";
-        Integer startIndex = 0;
-        Integer endIndex = itemsList.size();
-        if (options.containsKey(offsetOpt)) {
-            startIndex = (Integer) options.get(offsetOpt);
-        }
-        if (options.containsKey(limitOpt)) {
-            endIndex = startIndex + (Integer) options.get(limitOpt);
-        }
-        List<String> finalList = itemsList.subList(startIndex, endIndex);
-        // Display the items
-        for (int i=0; i<finalList.size(); ++i) {
-            // Check if the document is a template and prevent it from being displayed if that is the case
-            String docName = finalList.get(i);
-            String docFullName = dataSpace+"."+docName;
-            if(!isTemplate(docName)) {
-                // Try to load the item
-                // "getObjectFromId" will check for "view" access rights (AccessDeniedException)
+        try {
+            String xClassFullName = serializer.serialize(xClassRef);
+            String awmWhereClause = "doc.space = '" + this.dataSpace + "'";
+            Query query = QueryItems.getQuery(queryManager, xClassFullName, options, awmWhereClause, "doc.name");
+            List<String> objDocList = query.setWiki(this.wikiRef.getName()).execute();
+            for (int i = 0; i < objDocList.size(); ++i) {
+                // Get all instances of the class in the document
+                String docName = objDocList.get(i);
+                String docFullName = dataSpace+"."+docName;
                 try {
                     XWikiDocument xDoc = this.getDocFromId(docFullName);
                     BaseObject xObj = this.getObjectFromId(docFullName);
@@ -168,6 +165,8 @@ public class AWMApplication implements Application
                     logger.error("Unable to load the item [{}] : [{}]", docName, e.toString());
                 }
             }
+        } catch (QueryException e) {
+            logger.error("Unable to get the list of items", e);
         }
         return value;
     }
@@ -198,7 +197,7 @@ public class AWMApplication implements Application
     public Map<String, Object> storeItem(ItemMap itemData) throws Exception {
         String itemId = itemData.getId();
         String objName = dataSpace+"."+itemId; // The XWiki object name is the document full name
-        DocumentReference itemDocRef = resolver.resolve(objName, this.wikiRef);
+        DocumentReference itemDocRef = new DocumentReference(resolver.resolve(objName, EntityType.DOCUMENT, this.wikiRef));
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             XWikiDocument xDoc = this.getDocFromId(objName);
@@ -215,7 +214,7 @@ public class AWMApplication implements Application
     @Override
     public Map<String, Object> deleteItem(String itemId) throws Exception {
         String objName = dataSpace+"."+itemId; // The XWiki object name is the document full name
-        DocumentReference itemDocRef = resolver.resolve(objName, this.wikiRef);
+        DocumentReference itemDocRef = new DocumentReference(resolver.resolve(objName, EntityType.DOCUMENT, this.wikiRef));
         try {
             this.authorization.checkAccess(Right.EDIT, itemDocRef);
             XWikiDocument xDoc = this.getDocFromId(objName);
@@ -307,7 +306,8 @@ public class AWMApplication implements Application
             EntityReferenceSerializer<String> serializer, 
             DocumentReference appWebHomeRef) throws XWikiException 
     {
-        DocumentReference awmClassRef = new DocumentReference(context.getWikiId(), "AppWithinMinutes", "LiveTableClass");
+        WikiReference wikiRef = appWebHomeRef.getWikiReference();
+        DocumentReference awmClassRef = new DocumentReference(wikiRef.getName(), "AppWithinMinutes", "LiveTableClass");
         return context.getWiki().getDocument(appWebHomeRef, context).getXObject(awmClassRef);
     }
 
@@ -318,7 +318,7 @@ public class AWMApplication implements Application
      */
     public XWikiDocument getDocFromId(String itemId) throws XWikiException 
     {
-        DocumentReference itemDocRef = this.resolver.resolve(itemId, this.wikiRef);
+        DocumentReference itemDocRef = new DocumentReference(this.resolver.resolve(itemId, EntityType.DOCUMENT, this.wikiRef));
         return this.xwiki.getDocument(itemDocRef, this.context);
     }
     /**
