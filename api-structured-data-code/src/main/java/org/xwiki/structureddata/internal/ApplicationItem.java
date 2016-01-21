@@ -107,21 +107,24 @@ public class ApplicationItem
         // Get the properties map
         List<PropertyClass> propList = this.xClass.getEnabledProperties();
         for (int j = 0; j < propList.size(); ++j) {
-            String key = propList.get(j).getName();
+            PropertyClass prop = propList.get(j);
+            String key = prop.getName();
             Object propValue;
-            try {
-                Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
-                propValue = methodToFind.invoke(this.xObject.getField(key));
-                value.put(key, propValue);
-            } catch (NullPointerException e) {
+            if(!prop.getClassType().equals("Password")) {
                 try {
-                    // If value is not set, set an empty value and try again
-                    this.xObject.set(key, "", this.context);
                     Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
                     propValue = methodToFind.invoke(this.xObject.getField(key));
                     value.put(key, propValue);
-                } catch (NullPointerException | NoSuchMethodException f) {
-                    //logger.info("Can't find the value of property [{}] in item [{}]", key, this.itemId);
+                } catch (NullPointerException e) {
+                    try {
+                        // If value is not set, set an empty value and try again
+                        this.xObject.set(key, "", this.context);
+                        Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
+                        propValue = methodToFind.invoke(this.xObject.getField(key));
+                        value.put(key, propValue);
+                    } catch (NullPointerException | NoSuchMethodException f) {
+                        //logger.info("Can't find the value of property [{}] in item [{}]", key, this.itemId);
+                    }
                 }
             }
         }

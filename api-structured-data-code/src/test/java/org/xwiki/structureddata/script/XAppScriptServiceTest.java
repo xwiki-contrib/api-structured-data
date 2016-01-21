@@ -123,7 +123,7 @@ public class XAppScriptServiceTest
         prop2schema.put("Values", "Paris|Iasi");
         schema.put("prop2", prop2schema);
         
-        // CHeck the result
+        // Check the result
         Assert.assertEquals(xApp.getApp(classRef).getSchema(), schema);
     }
 
