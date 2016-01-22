@@ -31,14 +31,14 @@ import org.xwiki.model.reference.EntityReferenceSerializer;
 @SuppressWarnings("serial")
 public class ItemMap extends HashMap<String, Object> {
 
-    protected final static String AUTHOR = "author";
-    protected final static String CREATOR = "creator";
-    protected final static String CREATION = "creationDate";
-    protected final static String UPDATE = "updateDate";
-    protected final static String PARENT = "parent";
-    protected final static String HIDDEN = "hidden";
-    protected final static String TITLE = "title";
-    protected final static String CONTENT = "content";
+    public static final String AUTHOR = "author";
+    public final static String CREATOR = "creator";
+    public final static String CREATION = "creationDate";
+    public final static String UPDATE = "updateDate";
+    public final static String PARENT = "parent";
+    public final static String HIDDEN = "hidden";
+    public final static String TITLE = "title";
+    public final static String CONTENT = "content";
 
     private String apiId;
     private DocumentMap docMap;
@@ -77,15 +77,6 @@ public class ItemMap extends HashMap<String, Object> {
         docMapTmp.put(TITLE, xDoc.getTitle());
         docMapTmp.put(CONTENT, xDoc.getContent());
         this.docMap = docMapTmp;
-    }
-
-    /**
-     * Change the document fields Map associated to that ItemMap
-     * @param docMap 
-     */
-    public void setDocumentFieldsMap(DocumentMap docMap)
-    {
-        this.docMap = docMap;
     }
 
     public DocumentMap getDocumentFields() {

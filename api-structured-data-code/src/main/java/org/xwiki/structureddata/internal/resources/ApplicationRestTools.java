@@ -20,10 +20,13 @@
 package org.xwiki.structureddata.internal.resources;
 
 import com.xpn.xwiki.XWikiContext;
+import java.util.Date;
+import java.util.Map;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.structureddata.internal.DocumentMap;
 
 /**
  * Tools used by Application rest resources.
@@ -46,5 +49,49 @@ public class ApplicationRestTools {
             return new DocumentReference(resolver.resolve(appId, EntityType.DOCUMENT, wikiRef));
         }
         return new DocumentReference(resolver.resolve(appId, EntityType.DOCUMENT));
+    }
+
+    protected static final void updateMapFromJson(Map<String, Object> json, Map<String, Object> toUpdate) {
+        for(Map.Entry<String, Object> e : json.entrySet()) {
+            String key = e.getKey();
+            try {
+                Object newVal;
+                Object oldVal = toUpdate.get(key);
+                String className = oldVal.getClass().getSimpleName();
+                // Dates from JSON are represented as an Integer or a Long value, they have to be converted to a Date
+                if(className.equals("Date")) {
+                    String jsonType = json.get(key).getClass().getSimpleName();
+                    if(jsonType.equals("Long")) {
+                        newVal = new Date((Long) json.get(key));
+                    }
+                    else {
+                        newVal = new Date(((Integer) json.get(key)).longValue());
+                    }
+                }
+                // Get the string value of numbers in order to be able to convert them to the right type
+                // e.g : 2.0 (Float) is converted to 2 (Integer) in JSON and should then be converted back to Float
+                else if(className.equals("Float")) {
+                    newVal = Float.parseFloat(json.get(key).toString());
+                }
+                else if(className.equals("Double")) {
+                    newVal = Double.parseDouble(json.get(key).toString());
+                }
+                else if(className.equals("Long")) {
+                    newVal = Long.parseLong(json.get(key).toString());
+                }
+                else {
+                    newVal = json.get(key);
+                }
+                if(!newVal.equals(oldVal)) {
+                    if(toUpdate.getClass().getSimpleName().equals("DocumentMap")) {
+                        ((DocumentMap) toUpdate).set(key, newVal);
+                    }
+                    else {
+                        toUpdate.put(key, newVal);
+                    }
+                }
+            } catch (Exception f) {
+            }
+        }
     }
 }

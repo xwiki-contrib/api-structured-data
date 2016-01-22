@@ -25,7 +25,6 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +70,8 @@ public class AWMApplication implements Application
             EntityReferenceResolver<String> resolver,
             EntityReferenceSerializer<String> serializer,
             QueryManager queryManager,
-            Logger logger, 
-            DocumentReference appWebHomeRef) throws XWikiException 
+            Logger logger,
+            DocumentReference appWebHomeRef) throws XWikiException
     {
         this.context = context;
         this.queryManager = queryManager;
@@ -134,7 +133,7 @@ public class AWMApplication implements Application
     }
 
     @Override
-    public Map<String, Object> getItems() throws Exception 
+    public Map<String, Object> getItems() throws Exception
     {
         Map<String, Object> options = new HashMap<>();
         return this.getItems(options);
@@ -232,10 +231,10 @@ public class AWMApplication implements Application
      * @param context the wiki context
      * @param serializer 
      * @return true if the current document is in an AWM app
-     * @throws XWikiException 
+     * @throws XWikiException
      */
-    public static DocumentReference isAWM(XWikiContext context, 
-            EntityReferenceSerializer<String> serializer) throws XWikiException 
+    public static DocumentReference isAWM(XWikiContext context,
+            EntityReferenceSerializer<String> serializer) throws XWikiException
     {
         BaseObject awmObj = getAWMObject(context, serializer);
         if (awmObj == null) {
@@ -248,11 +247,11 @@ public class AWMApplication implements Application
      * @param serializer 
      * @param appWebHomeRef the reference of the application's WebHome
      * @return true is the reference represent an AWM app
-     * @throws XWikiException 
+     * @throws XWikiException
      */
-    public static DocumentReference isAWM(XWikiContext context, 
-            EntityReferenceSerializer<String> serializer, 
-            DocumentReference appWebHomeRef) throws XWikiException 
+    public static DocumentReference isAWM(XWikiContext context,
+            EntityReferenceSerializer<String> serializer,
+            DocumentReference appWebHomeRef) throws XWikiException
     {
         BaseObject awmObj = getAWMObject(context, serializer, appWebHomeRef);
         if (awmObj == null) {
@@ -266,13 +265,14 @@ public class AWMApplication implements Application
      * @param context the wiki context
      * @param serializer 
      * @return the AppWIthiMinutes.LiveTableClass object
-     * @throws XWikiException 
+     * @throws XWikiException
      */
-    public static BaseObject getAWMObject(XWikiContext context, 
-            EntityReferenceSerializer<String> serializer) throws XWikiException 
+    public static BaseObject getAWMObject(XWikiContext context,
+            EntityReferenceSerializer<String> serializer) throws XWikiException
     {
         // Check if the current document is in a subspace (Code/Data/etc.) of an AppWithinMinutes application
         DocumentReference docRef = context.getDoc().getDocumentReference();
+        String wikiId = docRef.getWikiReference().getName();
         List<SpaceReference> spacesRef = docRef.getSpaceReferences();
         SpaceReference lastAncestor = spacesRef.get(0);
         // Top-level space's WebHome :
@@ -282,14 +282,14 @@ public class AWMApplication implements Application
         // --> AWM code space is a top-level space named "{ApplicationName}Code"
         if (webHomeSpace.endsWith("Code") && webHomeSpace.length() > 4) {
             String appNameTmp = webHomeSpace.substring(0, webHomeSpace.length()-4);
-            DocumentReference appWebHomeRef = new DocumentReference(context.getWikiId(), 
-                    appNameTmp, 
+            DocumentReference appWebHomeRef = new DocumentReference(wikiId,
+                    appNameTmp,
                     "WebHome");
             awmObj = getAWMObject(context, serializer, appWebHomeRef);
         }
         // End compatibility code
         if (awmObj == null) {
-            DocumentReference appWebHomeRef = new DocumentReference(context.getWikiId(), webHomeSpace, "WebHome");
+            DocumentReference appWebHomeRef = new DocumentReference(wikiId, webHomeSpace, "WebHome");
             awmObj = getAWMObject(context, serializer, appWebHomeRef);
         }
         return awmObj;
@@ -300,11 +300,11 @@ public class AWMApplication implements Application
      * @param serializer 
      * @param appWebHomeRef the reference of the application's WebHome
      * @return the AppWIthiMinutes.LiveTableClass object
-     * @throws XWikiException 
+     * @throws XWikiException
      */
-    public static BaseObject getAWMObject(XWikiContext context, 
-            EntityReferenceSerializer<String> serializer, 
-            DocumentReference appWebHomeRef) throws XWikiException 
+    public static BaseObject getAWMObject(XWikiContext context,
+            EntityReferenceSerializer<String> serializer,
+            DocumentReference appWebHomeRef) throws XWikiException
     {
         WikiReference wikiRef = appWebHomeRef.getWikiReference();
         DocumentReference awmClassRef = new DocumentReference(wikiRef.getName(), "AppWithinMinutes", "LiveTableClass");
@@ -314,9 +314,9 @@ public class AWMApplication implements Application
     /**
      * @param itemId the id of an XWiki object
      * @return the XWikiDocument containing the object
-     * @throws XWikiException 
+     * @throws XWikiException
      */
-    public XWikiDocument getDocFromId(String itemId) throws XWikiException 
+    public XWikiDocument getDocFromId(String itemId) throws XWikiException
     {
         DocumentReference itemDocRef = new DocumentReference(this.resolver.resolve(itemId, EntityType.DOCUMENT, this.wikiRef));
         return this.xwiki.getDocument(itemDocRef, this.context);
@@ -324,9 +324,9 @@ public class AWMApplication implements Application
     /**
      * @param objId the id of an XWiki object
      * @return the XWiki object represented by the id
-     * @throws XWikiException 
+     * @throws XWikiException
      */
-    private BaseObject getObjectFromId(String itemId) throws XWikiException, AccessDeniedException 
+    private BaseObject getObjectFromId(String itemId) throws XWikiException, AccessDeniedException
     {
         XWikiDocument xDoc = this.getDocFromId(itemId);
         if (xDoc == null) {
@@ -341,7 +341,7 @@ public class AWMApplication implements Application
     }
 
     @Override
-    public String toString() 
+    public String toString()
     {
         return "AppWithinMinutes application : " + this.appName;
     }

@@ -1,19 +1,38 @@
-define(['jquery'], function ($) {
+define(['jquery', 'xwiki-meta'], function ($, xm) {
 
-  var getApp = function (appId, wiki) {
+  var getCurrent = function () {
+    return getApp(false, false);
+  };
 
+  var getApp = function (appIdInput, wiki) {
+
+    var exports = {};
+    var appId = appIdInput;
+
+    var addCurrentPath = '';
     var addWikiPath = '';
-    if(wiki) {
-        addWikiPath = 'wikis/'+wiki+'/';
+
+    // Check if we look for the current application or a specified application.
+    if(!appId) {
+      var wikiName  = xm ? xm.wiki  : $('meta[name="wiki"]').attr('content');
+      var space = xm ? xm.space : $('meta[name="space"]').attr('content');
+      var page  = xm ? xm.page  : $('meta[name="page"]').attr('content');
+      appId = wikiName + ':' + space + '.' + page;
+      addCurrentPath = 'current/';
     }
-    var getItems = function(options, callback) {
+    // Check if we look for an application in another wiki
+    else if(wiki) {
+      addWikiPath = 'wikis/'+wiki+'/';
+    }
+
+    var getItems = exports.getItems = function(options, callback) {
       // getItems() should work with or without the "options" parameter. If "options" is not provided, the first arg is the callback.
-      if(typeof callback === 'undefined' && typeof options === 'function') { 
+      if(typeof callback === 'undefined' && typeof options === 'function') {
         callback = options;
         options = {};
       }
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/items',
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items',
         type: "GET",
         data: $.param(options)
       }).success(function(data){
@@ -23,9 +42,9 @@ define(['jquery'], function ($) {
       });
     };
 
-    var getAppSchema = function(callback) {
+    var getSchema = exports.getSchema = function(callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/schema',
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/schema',
         type: "GET"
       }).success(function(data){
         callback(null, data);
@@ -34,9 +53,9 @@ define(['jquery'], function ($) {
       });
     };
 
-    var getItem = function(itemId, callback) {
+    var getItem = exports.getItem = function(itemId, callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
         type: "GET"
       }).success(function(data){
         callback(null, data);
@@ -45,9 +64,9 @@ define(['jquery'], function ($) {
       });
     };
 
-    var storeItem = function(itemId, itemData, callback) {
+    var storeItem = exports.storeItem = function(itemId, itemData, callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
         type: "PUT",
         contentType : "application/json",
         data: JSON.stringify(itemData)
@@ -58,9 +77,9 @@ define(['jquery'], function ($) {
       });
     };
 
-    var deleteItem = function(itemId, callback) {
+    var deleteItem = exports.deleteItem = function(itemId, callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
         type: "DELETE"
       }).success(function(data){
         callback(null, data);
@@ -69,16 +88,35 @@ define(['jquery'], function ($) {
       });
     };
 
-    return {
-      getItem : getItem,
-      getItems : getItems,
-      getAppSchema : getAppSchema,
-      storeItem : storeItem,
-      deleteItem : deleteItem
+    var getItemDocument = exports.getItemDocument = function(itemId, callback) {
+      $.ajax({
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId)+'/document',
+        type: "GET"
+      }).success(function(data){
+        callback(null, data);
+      }).error(function(xhr, status, err) {
+        callback(err, null);
+      });
     };
+
+    var storeItemDocument = exports.storeItemDocument = function(itemId, itemData, callback) {
+      $.ajax({
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId)+'/document',
+        type: "PUT",
+        contentType : "application/json",
+        data: JSON.stringify(itemData)
+      }).success(function(data){
+        callback(null, data);
+      }).error(function(xhr, status, err) {
+        callback(err, null);
+      });
+    };
+
+    return exports;
   };
 
   return {
+    getCurrent : getCurrent,
     getApp : getApp
   };
 });

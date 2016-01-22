@@ -69,14 +69,14 @@ public class ApplicationItem
      * @param resolver the document reference resolver
      * @param serializer 
      * @param logger 
-     * @throws XWikiException 
+     * @throws XWikiException
      */
-    public ApplicationItem(String itemId, 
+    public ApplicationItem(String itemId,
             Integer objNumber,
             XWikiDocument xDoc,
-            BaseObject xObject, 
+            BaseObject xObject,
             BaseClass xClass,
-            XWikiContext context, 
+            XWikiContext context,
             EntityReferenceResolver<String> resolver,
             EntityReferenceSerializer<String> serializer,
             Logger logger) throws XWikiException {
@@ -94,7 +94,7 @@ public class ApplicationItem
     /**
      * Get the map representing the item.
      * @return the item map
-     * @throws Exception 
+     * @throws Exception
      */
     protected ItemMap getItemMap() throws Exception
     {
@@ -143,9 +143,9 @@ public class ApplicationItem
      * Store the item in the wiki.
      * @param item the item data to store
      * @return the state of the save
-     * @throws Exception 
+     * @throws Exception
      */
-    protected Map<String, Object> store(ItemMap item) throws Exception 
+    protected Map<String, Object> store(ItemMap item) throws Exception
     {
         Map<String, Object> result = new HashMap<>();
         try {
@@ -160,7 +160,7 @@ public class ApplicationItem
                 this.xObject.set(key, value, this.context);
             }
             this.xDoc.setAuthorReference(context.getUserReference());
-            // Save the document fields if they have been changed. If the author has been changed in the item, 
+            // Save the document fields if they have been changed. If the author has been changed in the item,
             // it will override the previous line which set the author as the current user
             this.updateDocumentFields(item);
             this.context.getWiki().saveDocument(this.xDoc, "Properties updated", this.context);
@@ -174,7 +174,7 @@ public class ApplicationItem
     /**
      * Delete the item from the wiki.
      * @return the state of the deletion
-     * @throws Exception 
+     * @throws Exception
      */
     protected Map<String, Object> delete() throws Exception
     {
@@ -192,7 +192,7 @@ public class ApplicationItem
     /**
      * Create the item in the wiki.
      * @return theaseObject created
-     * @throws XWikiException 
+     * @throws XWikiException
      */
     private BaseObject create() throws XWikiException
     {
@@ -213,15 +213,15 @@ public class ApplicationItem
         if(item.getDocumentFields() != null && item.getDocumentFields().size() >= 8) {
             DocumentMap docMap = item.getDocumentFields();
             if(docMap.changes.contains(ItemMap.AUTHOR))
-                this.xDoc.setAuthorReference((DocumentReference) resolver.resolve((String) docMap.get(ItemMap.AUTHOR), EntityType.DOCUMENT));
+                this.xDoc.setAuthorReference(new DocumentReference(resolver.resolve((String) docMap.get(ItemMap.AUTHOR), EntityType.DOCUMENT)));
             if(docMap.changes.contains(ItemMap.CREATOR))
-                this.xDoc.setCreatorReference((DocumentReference) resolver.resolve((String) docMap.get(ItemMap.CREATOR), EntityType.DOCUMENT));
+                this.xDoc.setCreatorReference(new DocumentReference(resolver.resolve((String) docMap.get(ItemMap.CREATOR), EntityType.DOCUMENT)));
             if(docMap.changes.contains(ItemMap.CREATION))
                 this.xDoc.setCreationDate((Date) docMap.get(ItemMap.CREATION));
             if(docMap.changes.contains(ItemMap.UPDATE))
                 this.xDoc.setContentUpdateDate((Date) docMap.get(ItemMap.UPDATE));
             if(docMap.changes.contains(ItemMap.PARENT))
-                this.xDoc.setParentReference(resolver.resolve((String) docMap.get(ItemMap.PARENT), EntityType.DOCUMENT));
+                this.xDoc.setParentReference(new DocumentReference(resolver.resolve((String) docMap.get(ItemMap.PARENT), EntityType.DOCUMENT)));
             if(docMap.changes.contains(ItemMap.HIDDEN))
                 this.xDoc.setHidden((Boolean) docMap.get(ItemMap.HIDDEN));
             if(docMap.changes.contains(ItemMap.TITLE))

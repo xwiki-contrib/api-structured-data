@@ -66,7 +66,7 @@ public class ApplicationsFromWikiResource extends XWikiResource
     private EntityReferenceResolver<String> resolver;
 
     @Inject
-    private Logger logger;
+    private Logger appLogger;
 
     @Inject
     @Named("local")
@@ -74,31 +74,35 @@ public class ApplicationsFromWikiResource extends XWikiResource
 
     @Inject
     ContextualAuthorizationManager authorization;
-    
+
     /**
      * Get a list of the classes/applications in the wiki.
      * @param wikiName the name of the selected wiki
      * @return a map containing the list of classes
-     * @throws XWikiException 
-     * @throws QueryException
+     * @throws XWikiException
      */
     @GET
-    public Map<String, Object> getAppList(@PathParam("wikiName") String wikiName) throws XWikiException, QueryException
+    public Map<String, Object> getAppList(@PathParam("wikiName") String wikiName) throws XWikiException
     {
         XWikiContext context = xcontextProvider.get();
         Map<String, Object> result = new HashMap<>();
         XWiki xwiki = context.getWiki();
         List<String> classList = xwiki.getClassList(context);
-        String queryString = "select doc.name"
+        String queryString = "select doc.space"
                 + " from Document doc, doc.object(AppWithinMinutes.LiveTableClass) as item"
-                + " order by doc.name";
-        Query query = queryManager.createQuery(queryString, Query.XWQL);
-        List<String> awmList = query.setWiki(wikiName).execute();
-        result.put("AWM Applications", awmList);
+                + " where doc.fullName <> 'AppWithinMinutes.LiveTableTemplate'"
+                + " order by doc.space";
+        try {
+            Query query = queryManager.createQuery(queryString, Query.XWQL);
+            List<String> awmList = query.setWiki(wikiName).execute();
+            result.put("AWM Applications", awmList);
+        } catch(QueryException e) {
+            result.put("Error while searching AWM applications list", "Error: "+e);
+        }
         result.put("XWiki Classes", classList);
         return result;
     }
-    
+
     @Path("{appName}")
     @GET
     public Map<String, Object> get(@PathParam("wikiName") String wikiName,
@@ -120,9 +124,9 @@ public class ApplicationsFromWikiResource extends XWikiResource
     @Path("{appName}/items")
     @GET
     public Map<String, Object> getItems(@PathParam("wikiName") String wikiName,
-            @PathParam("appName") String appId, 
-            @QueryParam("limit") String limit, 
-            @QueryParam("offset") String offset, 
+            @PathParam("appName") String appId,
+            @QueryParam("limit") String limit,
+            @QueryParam("offset") String offset,
             @QueryParam("query") String query) throws Exception
     {
         Application app = getApplication(wikiName, appId);
@@ -132,7 +136,7 @@ public class ApplicationsFromWikiResource extends XWikiResource
     @Path("{appName}/items/{itemId}")
     @GET
     public Map<String, Object> getItem(@PathParam("wikiName") String wikiName,
-            @PathParam("appName") String appId, 
+            @PathParam("appName") String appId,
             @PathParam("itemId") String itemId) throws Exception
     {
         Application app = getApplication(wikiName, appId);
@@ -143,19 +147,21 @@ public class ApplicationsFromWikiResource extends XWikiResource
     @PUT
     @Consumes({ MediaType.APPLICATION_JSON })
     public Map<String, Object> storeItem(@PathParam("wikiName") String wikiName,
-            @PathParam("appName") String appId, 
+            @PathParam("appName") String appId,
             @PathParam("itemId") String itemId,
             String jsonRequest) throws Exception
     {
         Application app = getApplication(wikiName, appId);
-        ItemMap itemData = new ObjectMapper().readValue(jsonRequest, ItemMap.class);
-        return app.storeItem(itemData);
+        ItemMap item = app.getItem(itemId);
+        ItemMap newItemData = new ObjectMapper().readValue(jsonRequest, ItemMap.class);
+        ApplicationRestTools.updateMapFromJson(newItemData, item);
+        return app.storeItem(item);
     }
 
     @Path("{appName}/items/{itemId}")
     @DELETE
     public Map<String, Object> deleteItem(@PathParam("wikiName") String wikiName,
-            @PathParam("appName") String appId, 
+            @PathParam("appName") String appId,
             @PathParam("itemId") String itemId) throws Exception
     {
         Application app = getApplication(wikiName, appId);
@@ -165,7 +171,7 @@ public class ApplicationsFromWikiResource extends XWikiResource
     @Path("{appName}/items/{itemId}/document")
     @GET
     public Map<String, Object> getItemDocument(@PathParam("wikiName") String wikiName,
-            @PathParam("appName") String appId, 
+            @PathParam("appName") String appId,
             @PathParam("itemId") String itemId) throws Exception
     {
         Application app = getApplication(wikiName, appId);
@@ -176,14 +182,15 @@ public class ApplicationsFromWikiResource extends XWikiResource
     @PUT
     @Consumes({ MediaType.APPLICATION_JSON })
     public Map<String, Object> storeItemDocument(@PathParam("wikiName") String wikiName,
-            @PathParam("appName") String appId, 
+            @PathParam("appName") String appId,
             @PathParam("itemId") String itemId,
             String jsonRequest) throws Exception
     {
         Application app = getApplication(wikiName, appId);
         DocumentMap docData = new ObjectMapper().readValue(jsonRequest, DocumentMap.class);
         ItemMap item = app.getItem(itemId);
-        item.setDocumentFieldsMap(docData);
+        DocumentMap oldDocData = item.getDocumentFields();
+        ApplicationRestTools.updateMapFromJson(docData, oldDocData);
         return app.storeItem(item);
     }
 
@@ -193,11 +200,11 @@ public class ApplicationsFromWikiResource extends XWikiResource
         Application newApp;
         DocumentReference awmWebHomeRef = ApplicationRestTools.getAWMRef(context, wikiName, appId);
         if(AWMApplication.isAWM(context, serializer, awmWebHomeRef) != null) {
-            newApp = new AWMApplication(context, authorization, resolver, serializer, queryManager, logger, awmWebHomeRef);
+            newApp = new AWMApplication(context, authorization, resolver, serializer, queryManager, appLogger, awmWebHomeRef);
         }
         else {
             DocumentReference classRef = ApplicationRestTools.getClassRef(context, wikiName, appId, resolver);
-            newApp = new DefaultApplication(context, authorization, resolver, serializer, queryManager, logger, classRef);
+            newApp = new DefaultApplication(context, authorization, resolver, serializer, queryManager, appLogger, classRef);
         }
         return newApp;
     }

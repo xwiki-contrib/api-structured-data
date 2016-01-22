@@ -1,3 +1,4 @@
 org.xwiki.structureddata.script.XAppScriptService
 org.xwiki.structureddata.internal.resources.ApplicationsResource
+org.xwiki.structureddata.internal.resources.CurrentApplicationResource
 org.xwiki.structureddata.internal.resources.ApplicationsFromWikiResource

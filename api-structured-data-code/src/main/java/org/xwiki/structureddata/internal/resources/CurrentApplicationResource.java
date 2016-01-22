@@ -20,12 +20,10 @@
 package org.xwiki.structureddata.internal.resources;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -46,13 +44,10 @@ import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.query.Query;
-import org.xwiki.query.QueryException;
 import org.xwiki.rest.XWikiResource;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.structureddata.Application;
 import org.xwiki.structureddata.internal.AWMApplication;
-import org.xwiki.structureddata.internal.DefaultApplication;
 import org.xwiki.structureddata.internal.DocumentMap;
 import org.xwiki.structureddata.internal.ItemMap;
 
@@ -61,10 +56,10 @@ import org.xwiki.structureddata.internal.ItemMap;
  * 
  * @version $Id$
  */
-@Component("org.xwiki.structureddata.internal.resources.ApplicationsResource")
-@Path("/applications/")
+@Component("org.xwiki.structureddata.internal.resources.CurrentApplicationResource")
+@Path("/applications/current/{pageFullName}")
 @Produces({ MediaType.APPLICATION_JSON })
-public class ApplicationsResource extends XWikiResource
+public class CurrentApplicationResource extends XWikiResource
 {
     @Inject
     private EntityReferenceResolver<String> resolver;
@@ -79,111 +74,95 @@ public class ApplicationsResource extends XWikiResource
     @Inject
     ContextualAuthorizationManager authorization;
 
-    /**
-     * Get a list of the classes/applications in the wiki.
-     * @return a map containing the list of classes
-     * @throws XWikiException
-     * @throws QueryException
-     */
     @GET
-    public Map<String, Object> getAppList() throws XWikiException, QueryException
+    public Map<String, Object> getCurrent(@PathParam("pageFullName") String pageFullName) throws Exception
     {
-        XWikiContext context = xcontextProvider.get();
-        Map<String, Object> result = new HashMap<>();
-        XWiki xwiki = context.getWiki();
-        List<String> classList = xwiki.getClassList(context);
-        String queryString = "select doc.space"
-                + " from Document doc, doc.object(AppWithinMinutes.LiveTableClass) as item"
-                + " where doc.fullName <> 'AppWithinMinutes.LiveTableTemplate'"
-                + " order by doc.space";
-        try {
-            Query query = queryManager.createQuery(queryString, Query.XWQL);
-            List<String> awmList = query.execute();
-            result.put("AWM Applications", awmList);
-        } catch(QueryException e) {
-            result.put("Error while searching AWM applications list", "Error: "+e);
-            e.printStackTrace();
-        }
-        result.put("XWiki Classes", classList);
-        return result;
-    }
-
-    @Path("{appName}")
-    @GET
-    public Map<String, Object> get(@PathParam("appName") String appId) throws Exception
-    {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(pageFullName);
+        if(app == null)
+            return new HashMap<>();
         return ApplicationResource.getResource(app);
     }
 
-    @Path("{appName}/schema")
+    @Path("/schema")
     @GET
-    public Map<String, Object> getSchema(@PathParam("appName") String appId) throws Exception
+    public Map<String, Object> getSchema(@PathParam("pageFullName") String pageFullName) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(pageFullName);
+        if(app == null)
+            return new HashMap<>();
         return app.getSchema();
     }
 
-    @Path("{appName}/items")
+    @Path("/items")
     @GET
-    public Map<String, Object> getItems(@PathParam("appName") String appId,
+    public Map<String, Object> getItems(@PathParam("pageFullName") String pageFullName,
             @QueryParam("limit") String limit,
             @QueryParam("offset") String offset,
             @QueryParam("query") String query) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(pageFullName);
+        if(app == null)
+            return new HashMap<>();
         return ItemsResource.getResource(app, limit, offset, query);
     }
 
-    @Path("{appName}/items/{itemId}")
+    @Path("/items/{itemId}")
     @GET
-    public Map<String, Object> getItem(@PathParam("appName") String appId,
+    public Map<String, Object> getItem(@PathParam("pageFullName") String pageFullName,
             @PathParam("itemId") String itemId) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(pageFullName);
+        if(app == null)
+            return new HashMap<>();
         return app.getItem(itemId);
     }
 
-    @Path("{appName}/items/{itemId}")
+    @Path("/items/{itemId}")
     @PUT
     @Consumes({ MediaType.APPLICATION_JSON })
-    public Map<String, Object> storeItem(@PathParam("appName") String appId,
+    public Map<String, Object> storeItem(@PathParam("pageFullName") String pageFullName,
             @PathParam("itemId") String itemId,
             String jsonRequest) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(pageFullName);
+        if(app == null)
+            return new HashMap<>();
         ItemMap item = app.getItem(itemId);
         ItemMap newItemData = new ObjectMapper().readValue(jsonRequest, ItemMap.class);
         ApplicationRestTools.updateMapFromJson(newItemData, item);
         return app.storeItem(item);
     }
 
-    @Path("{appName}/items/{itemId}")
+    @Path("/items/{itemId}")
     @DELETE
-    public Map<String, Object> deleteItem(@PathParam("appName") String appId,
+    public Map<String, Object> deleteItem(@PathParam("pageFullName") String pageFullName,
             @PathParam("itemId") String itemId) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(pageFullName);
         return app.deleteItem(itemId);
     }
 
-    @Path("{appName}/items/{itemId}/document")
+    @Path("/items/{itemId}/document")
     @GET
-    public Map<String, Object> getItemDocument(@PathParam("appName") String appId,
+    public Map<String, Object> getItemDocument(@PathParam("pageFullName") String pageFullName,
             @PathParam("itemId") String itemId) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(pageFullName);
+        if(app == null)
+            return new HashMap<>();
         return app.getItem(itemId).getDocumentFields();
     }
 
-    @Path("{appName}/items/{itemId}/document")
+    @Path("/items/{itemId}/document")
     @PUT
     @Consumes({ MediaType.APPLICATION_JSON })
-    public Map<String, Object> storeItemDocument(@PathParam("appName") String appId,
+    public Map<String, Object> storeItemDocument(@PathParam("pageFullName") String pageFullName,
             @PathParam("itemId") String itemId,
             String jsonRequest) throws Exception
     {
-        Application app = getApplication(null, appId);
+        Application app = getApplication(pageFullName);
+        if(app == null)
+            return new HashMap<>();
         DocumentMap docData = new ObjectMapper().readValue(jsonRequest, DocumentMap.class);
         ItemMap item = app.getItem(itemId);
         DocumentMap oldDocData = item.getDocumentFields();
@@ -191,18 +170,16 @@ public class ApplicationsResource extends XWikiResource
         return app.storeItem(item);
     }
 
-    private Application getApplication(String wikiName, String appId) throws XWikiException
+    private Application getApplication(String pageFullName) throws XWikiException
     {
         XWikiContext context = xcontextProvider.get();
-        Application newApp;
-        DocumentReference awmWebHomeRef = ApplicationRestTools.getAWMRef(context, wikiName, appId);
-        if(AWMApplication.isAWM(context, serializer, awmWebHomeRef) != null) {
-            newApp = new AWMApplication(context, authorization, resolver, serializer, queryManager, appLogger, awmWebHomeRef);
+        DocumentReference pageRef = new DocumentReference(resolver.resolve(pageFullName, EntityType.DOCUMENT));
+        XWikiDocument xDoc = context.getWiki().getDocument(pageRef, context);
+        context.setDoc(xDoc);
+        DocumentReference awmWebHomeRef = AWMApplication.isAWM(context, serializer);
+        if(awmWebHomeRef != null) {
+            return new AWMApplication(context, authorization, resolver, serializer, queryManager, appLogger, awmWebHomeRef);
         }
-        else {
-            DocumentReference classRef = ApplicationRestTools.getClassRef(context, wikiName, appId, resolver);
-            newApp = new DefaultApplication(context, authorization, resolver, serializer, queryManager, appLogger, classRef);
-        }
-        return newApp;
+        return null;
     }
 }
