@@ -31,10 +31,10 @@
   </parent>
   <groupId>org.xwiki.contrib</groupId>
   <artifactId>api-structured-data-code</artifactId>
-  <name>Structured data access API</name>
+  <name>Structured data access API (EXPERIMENTAL)</name>
   <description>An API for accessing structured data</description>
   <properties>
-    <xwiki.extension.name>Structured data access API</xwiki.extension.name>
+    <xwiki.extension.name>Structured data access API (EXPERIMENTAL)</xwiki.extension.name>
     <xwiki.extension.category>api</xwiki.extension.category>
   </properties>
   <dependencies>

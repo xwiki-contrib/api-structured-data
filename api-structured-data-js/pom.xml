@@ -31,10 +31,10 @@
   </parent>
   <groupId>org.xwiki.contrib</groupId>
   <artifactId>api-structured-data-js</artifactId>
-  <name>Structured data access JS API</name>
+  <name>Structured data access JS API (EXPERIMENTAL)</name>
   <description>An API for accessing structured data with JavaScript</description>
   <properties>
-    <xwiki.extension.name>Structured data access JS API</xwiki.extension.name>
+    <xwiki.extension.name>Structured data access JS API (EXPERIMENTAL)</xwiki.extension.name>
     <xwiki.extension.category>api</xwiki.extension.category>
   </properties>
   <build>
