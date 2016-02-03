@@ -42,7 +42,7 @@
   <scm>
     <connection>scm:git:git://github.com/xwiki-contrib/api-structured-data.git</connection>
     <developerConnection>scm:git:git@github.com:xwiki-contrib/api-structured-data.git</developerConnection>
-    <url>https://github.com/xwiki-contrib/api-structured-data</url>
+    <url>https://github.com/xwiki-contrib/api-structured-data/tree/master/</url>
     <tag>HEAD</tag>
   </scm>
   <developers>

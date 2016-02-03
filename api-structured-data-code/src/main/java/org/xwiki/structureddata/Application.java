@@ -19,11 +19,12 @@
  */
 package org.xwiki.structureddata;
 
+import com.xpn.xwiki.objects.classes.BaseClass;
 import java.util.Map;
 import org.xwiki.structureddata.internal.ItemMap;
 
 /**
- * Interface if the Applications.
+ * Interface of the Applications.
  * 
  * @version $Id$
  */

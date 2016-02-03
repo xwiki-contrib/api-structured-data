@@ -170,28 +170,6 @@ public class AWMApplication implements Application
         return value;
     }
 
-    /**
-     * Check if the document is a template of the current class
-     * @param docName
-     * @return true if the document is a template
-     */
-    private Boolean isTemplate(String docName) {
-        String className = this.xClassRef.getName();
-        // Check for template following the model "Application" -> "ApplicationTemplate"
-        // or the model "ApplicationClass" -> "ApplicationClassTemplate"
-        if (docName.equals(className + "Template")) {
-            return true;
-        }
-        // Check for template following the model "ApplicationClass" -> "ApplicationTemplate"
-        if (className.length() > 5 && className.endsWith("Class")) {
-            String shortClassName = className.substring(0, className.length()-5);
-            if (docName.equals(shortClassName + "Template")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public Map<String, Object> storeItem(ItemMap itemData) throws Exception {
         String itemId = itemData.getId();

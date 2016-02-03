@@ -22,6 +22,7 @@ package org.xwiki.structureddata.internal;
 import com.xpn.xwiki.doc.XWikiDocument;
 import java.util.HashMap;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.structureddata.DataMap;
 
 /**
  * Change the value of an item using set().
@@ -29,7 +30,7 @@ import org.xwiki.model.reference.EntityReferenceSerializer;
  * @version $Id$
  */
 @SuppressWarnings("serial")
-public class ItemMap extends HashMap<String, Object> {
+public class ItemMap extends HashMap<String, Object> implements DataMap {
 
     public static final String AUTHOR = "author";
     public final static String CREATOR = "creator";
@@ -55,6 +56,7 @@ public class ItemMap extends HashMap<String, Object> {
      * @param key the String key
      * @param value the Object value
      */
+    @Override
     public void set(String key, Object value)
     {
         this.put(key, value);

@@ -17,32 +17,13 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.structureddata.internal;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import org.xwiki.structureddata.DataMap;
+package org.xwiki.structureddata;
 
 /**
- * Displays document fields.
+ * Interface of the document/item/etc maps.
  * 
  * @version $Id$
  */
-@SuppressWarnings("serial")
-public class DocumentMap extends HashMap<String, Object> implements DataMap {
-
-    protected Set<String> changes = new HashSet<>();
-
-    /**
-     * Change the value associated to a key in the map.
-     * @param key the String key
-     * @param value the Object value
-     */
-    @Override
-    public void set(String key, Object value)
-    {
-        this.changes.add(key);
-        this.put(key, value);
-    }
+public interface DataMap {
+    public void set(String key, Object value);
 }
