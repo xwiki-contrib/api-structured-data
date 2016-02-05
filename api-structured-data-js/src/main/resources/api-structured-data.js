@@ -22,7 +22,7 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
     }
     // Check if we look for an application in another wiki
     else if(wiki) {
-      addWikiPath = 'wikis/'+wiki+'/';
+      addWikiPath = 'wikis/'+encodeURI(wiki)+'/';
     }
 
     var getItems = exports.getItems = function(options, callback) {
@@ -32,7 +32,7 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
         options = {};
       }
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items',
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURI(appId)+'/items',
         type: "GET",
         data: $.param(options)
       }).success(function(data){
@@ -44,7 +44,7 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
 
     var getSchema = exports.getSchema = function(callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/schema',
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURI(appId)+'/schema',
         type: "GET"
       }).success(function(data){
         callback(null, data);
@@ -55,7 +55,7 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
 
     var getItem = exports.getItem = function(itemId, callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURI(appId)+'/items/'+encodeURI(itemId),
         type: "GET"
       }).success(function(data){
         callback(null, data);
@@ -66,7 +66,7 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
 
     var storeItem = exports.storeItem = function(itemId, itemData, callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURI(appId)+'/items/'+encodeURI(itemId),
         type: "PUT",
         contentType : "application/json",
         data: JSON.stringify(itemData)
@@ -79,7 +79,7 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
 
     var deleteItem = exports.deleteItem = function(itemId, callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId),
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURI(appId)+'/items/'+encodeURI(itemId),
         type: "DELETE"
       }).success(function(data){
         callback(null, data);
@@ -90,7 +90,7 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
 
     var getItemDocument = exports.getItemDocument = function(itemId, callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId)+'/document',
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURI(appId)+'/items/'+encodeURI(itemId)+'/document',
         type: "GET"
       }).success(function(data){
         callback(null, data);
@@ -101,7 +101,7 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
 
     var storeItemDocument = exports.storeItemDocument = function(itemId, itemData, callback) {
       $.ajax({
-        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURIComponent(appId)+'/items/'+encodeURIComponent(itemId)+'/document',
+        url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURI(appId)+'/items/'+encodeURI(itemId)+'/document',
         type: "PUT",
         contentType : "application/json",
         data: JSON.stringify(itemData)

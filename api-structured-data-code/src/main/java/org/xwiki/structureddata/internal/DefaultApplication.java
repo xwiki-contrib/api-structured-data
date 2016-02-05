@@ -52,7 +52,8 @@ import org.xwiki.structureddata.Application;
 public class DefaultApplication implements Application 
 {
 
-    private static final String PATTERN_ITEM_ID_SEPARATOR = "\\|";
+    private static final String ITEM_ID_SEPARATOR = "|";
+    //private static final String PATTERN_ITEM_ID_SEPARATOR = "\\|";
     private static final String PATTERN_ITEM_ID_NUMBER = "\\|[0-9]+";
 
     private QueryManager queryManager;
@@ -207,7 +208,11 @@ public class DefaultApplication implements Application
         Pattern pattern = Pattern.compile(PATTERN_ITEM_ID_NUMBER);
         Matcher matcher = pattern.matcher(objId);
         while (matcher.find()) {
-            return objId.split(PATTERN_ITEM_ID_SEPARATOR)[0];
+            try {
+                Integer lastPipe = objId.lastIndexOf(ITEM_ID_SEPARATOR);
+                return objId.substring(0,lastPipe);
+            } catch(Exception e) {
+            }
         }
         return objId;
     }
@@ -215,7 +220,12 @@ public class DefaultApplication implements Application
         Pattern pattern = Pattern.compile(PATTERN_ITEM_ID_NUMBER);
         Matcher matcher = pattern.matcher(objId);
         while (matcher.find()) {
-            return Integer.parseInt(objId.split(PATTERN_ITEM_ID_SEPARATOR)[1]);
+            try {
+                Integer lastPipe = objId.lastIndexOf(ITEM_ID_SEPARATOR)+1;
+                return Integer.parseInt(objId.substring(lastPipe));
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
         }
         return 0;
     }

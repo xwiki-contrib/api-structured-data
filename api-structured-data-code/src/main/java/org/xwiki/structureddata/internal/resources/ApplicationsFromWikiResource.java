@@ -82,7 +82,7 @@ public class ApplicationsFromWikiResource extends XWikiResource
      * @throws XWikiException
      */
     @GET
-    public Map<String, Object> getAppList(@PathParam("wikiName") String wikiName) throws XWikiException
+    public Map<String, Object> getAppList(@PathParam("wikiName") String wikiName) throws Exception
     {
         XWikiContext context = xcontextProvider.get();
         Map<String, Object> result = new HashMap<>();
@@ -194,7 +194,7 @@ public class ApplicationsFromWikiResource extends XWikiResource
         return app.storeItem(item);
     }
 
-    private Application getApplication(String wikiName, String appId) throws XWikiException
+    private Application getApplication(String wikiName, String appId) throws Exception
     {
         XWikiContext context = xcontextProvider.get();
         Application newApp;
