@@ -82,7 +82,7 @@ public class XAppScriptService implements ScriptService
         
         Application newApp;
         DocumentReference awmWebHomeRef = new DocumentReference(context.getWikiId(), appId, "WebHome");
-        if(AWMApplication.isAWM(context, serializer, awmWebHomeRef) != null) {
+        if(AWMApplication.isAWM(context, awmWebHomeRef) != null) {
             newApp = new AWMApplication(context, authorizationManager, resolver, serializer, queryManager, logger, awmWebHomeRef);
         }
         else {

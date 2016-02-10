@@ -84,7 +84,7 @@ public class AWMApplication implements Application
         // Get the class reference from the AppWithinMinutes.LiveTableClass object
         BaseObject item;
         if(appWebHomeRef != null) {
-            item = getAWMObject(context, serializer, appWebHomeRef);
+            item = getAWMObject(context, appWebHomeRef);
         }
         else {
             item = getAWMObject(context, serializer);
@@ -222,16 +222,14 @@ public class AWMApplication implements Application
     }
     /**
      * @param context the wiki context
-     * @param serializer 
      * @param appWebHomeRef the reference of the application's WebHome
      * @return true is the reference represent an AWM app
      * @throws XWikiException
      */
     public static DocumentReference isAWM(XWikiContext context,
-            EntityReferenceSerializer<String> serializer,
             DocumentReference appWebHomeRef) throws XWikiException
     {
-        BaseObject awmObj = getAWMObject(context, serializer, appWebHomeRef);
+        BaseObject awmObj = getAWMObject(context, appWebHomeRef);
         if (awmObj == null) {
             return null;
         }
@@ -241,7 +239,7 @@ public class AWMApplication implements Application
     /**
      * Get the LiveTableClass object of the AWM app of the current document.
      * @param context the wiki context
-     * @param serializer 
+     * @param serializer the serializer of References into String
      * @return the AppWIthiMinutes.LiveTableClass object
      * @throws XWikiException
      */
@@ -263,25 +261,23 @@ public class AWMApplication implements Application
             DocumentReference appWebHomeRef = new DocumentReference(wikiId,
                     appNameTmp,
                     "WebHome");
-            awmObj = getAWMObject(context, serializer, appWebHomeRef);
+            awmObj = getAWMObject(context, appWebHomeRef);
         }
         // End compatibility code
         if (awmObj == null) {
             DocumentReference appWebHomeRef = new DocumentReference(wikiId, webHomeSpace, "WebHome");
-            awmObj = getAWMObject(context, serializer, appWebHomeRef);
+            awmObj = getAWMObject(context, appWebHomeRef);
         }
         return awmObj;
     }
     /**
      * Get the LiveTableClass object of the selected AWM app.
      * @param context the wiki context
-     * @param serializer 
      * @param appWebHomeRef the reference of the application's WebHome
      * @return the AppWIthiMinutes.LiveTableClass object
      * @throws XWikiException
      */
     public static BaseObject getAWMObject(XWikiContext context,
-            EntityReferenceSerializer<String> serializer,
             DocumentReference appWebHomeRef) throws XWikiException
     {
         WikiReference wikiRef = appWebHomeRef.getWikiReference();
@@ -300,7 +296,7 @@ public class AWMApplication implements Application
         return this.xwiki.getDocument(itemDocRef, this.context);
     }
     /**
-     * @param objId the id of an XWiki object
+     * @param itemId the id of an XWiki object
      * @return the XWiki object represented by the id
      * @throws XWikiException
      */
