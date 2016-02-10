@@ -11,8 +11,9 @@ import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 
 /**
+ * Get the query returning the list of items for a given Application.
  *
- * @author Yann
+ * @version $Id$
  */
 public class QueryItems {
     private static String queryOpt = "query";
@@ -28,7 +29,7 @@ public class QueryItems {
         }
         // Search query
         String queryString = "select " + appSelectClause
-                + " from Document doc, doc.object( " + xClassFullName + " ) as item "
+                + " from Document doc, doc.object( '" + xClassFullName + "' ) as item "
                 + "where " + appWhereClause + templateFilter;
         // Add the additional filter from the "options" parameter
         if (options.containsKey(queryOpt)) {
