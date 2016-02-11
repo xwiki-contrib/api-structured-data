@@ -194,7 +194,7 @@ public class ApplicationsResource extends XWikiResource
         XWikiContext context = xcontextProvider.get();
         Application newApp;
         DocumentReference awmWebHomeRef = ApplicationRestTools.getAWMRef(context, wikiName, appId);
-        if(AWMApplication.isAWM(context, serializer, awmWebHomeRef) != null) {
+        if(AWMApplication.isAWM(context, awmWebHomeRef) != null) {
             newApp = new AWMApplication(context, authorization, resolver, serializer, queryManager, appLogger, awmWebHomeRef);
         }
         else {
