@@ -40,7 +40,8 @@ public class QueryItems {
         }
         // Hide the hidden documents except if it is explicitly requested to display them
         if (options.containsKey(hiddenOpt)) {
-            if(options.get(hiddenOpt) != "true" && options.get(hiddenOpt) != "1") {
+            String hiddenValue = options.get(hiddenOpt).toString();
+            if(!(hiddenValue.equals("true") || hiddenValue.equals("1"))) {
                 queryString += " and (doc.hidden <> true or doc.hidden is null)";
             }
         }
