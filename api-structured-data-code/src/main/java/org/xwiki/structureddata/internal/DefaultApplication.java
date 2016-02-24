@@ -72,11 +72,11 @@ public class DefaultApplication implements Application
     /**
      * Create a new object describing the application represented by a class reference.
      * @param context the context in the running wiki
-     * @param authorizationManager 
+     * @param authorizationManager the authorization checker
      * @param resolver the Document reference resolver
-     * @param serializer 
+     * @param serializer the document reference serializer
      * @param queryManager the XWiki query manager
-     * @param logger 
+     * @param logger the console logger
      * @param classReference the reference of the class
      * @throws XWikiException 
      */
@@ -123,6 +123,7 @@ public class DefaultApplication implements Application
             ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj, xDoc);
             value = item.getItemMap();
         } catch (AccessDeniedException e) {
+            // logger.info("Access denied to item [{}] : [{}]", itemId, e.toString());
         } catch (Exception e) {
             logger.error("Unable to load the item [{}] : [{}]", itemId, e.toString());
         }
@@ -142,10 +143,10 @@ public class DefaultApplication implements Application
         try {
             Query query = QueryItems.getQuery(queryManager, xClassFullName, options, "1=1", "item.name, item.number");
             List<Object[]> objDocList = query.setWiki(this.wikiRef.getName()).execute();
-            for (int i = 0; i < objDocList.size(); ++i) {
+            for (Object[] anObjDocList : objDocList) {
                 // Get all instances of the class in the document
-                String objName = (String) objDocList.get(i)[0];
-                Integer objNumber = (Integer) objDocList.get(i)[1];
+                String objName = (String) anObjDocList[0];
+                Integer objNumber = (Integer) anObjDocList[1];
                 DocumentReference docRef = new DocumentReference(this.resolver.resolve(objName, EntityType.DOCUMENT, this.wikiRef));
                 try {
                     this.authorization.checkAccess(Right.VIEW, docRef);
@@ -157,6 +158,7 @@ public class DefaultApplication implements Application
                         value.put(properties.getId(), properties);
                     }
                 } catch (AccessDeniedException e) {
+                    // logger.info("Access denied to item [{}] : [{}]", itemId, e.toString());
                 } catch (Exception e) {
                     logger.error("Unable to load the item [{}] : [{}]", objName, e.toString());
                 }
@@ -212,6 +214,7 @@ public class DefaultApplication implements Application
                 Integer lastPipe = objId.lastIndexOf(ITEM_ID_SEPARATOR);
                 return objId.substring(0,lastPipe);
             } catch(Exception e) {
+                // logger.info("Unable to get the name or object number missing");
             }
         }
         return objId;
@@ -245,7 +248,7 @@ public class DefaultApplication implements Application
     }
 
     private ApplicationItem getApplicationItem(String objName, Integer objNumber, BaseObject xObj, XWikiDocument xDoc) throws XWikiException {
-        return new ApplicationItem(objName, objNumber, xDoc, xObj, this.xClass, this.context, this.resolver, this.serializer, this.logger);
+        return new ApplicationItem(objName, objNumber, xDoc, xObj, this.xClass, this.context, this.resolver, this.serializer);
     }
     
     @Override

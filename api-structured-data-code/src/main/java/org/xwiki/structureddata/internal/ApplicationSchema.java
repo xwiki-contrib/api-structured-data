@@ -27,14 +27,13 @@ public class ApplicationSchema {
     /**
      * @param xClass the BaseClass representing the application
      * @param context the wiki context
-     * @param logger 
+     * @param logger the console logger
      * @return the schema of the application
      */
     protected static Map<String, Object> getAppSchema(BaseClass xClass, XWikiContext context, Logger logger) {
         Map<String, Object> value = new HashMap<>();
         List<PropertyClass> propList = xClass.getEnabledProperties();
-        for (int i = 0; i < propList.size(); ++i) {
-            PropertyClass property = propList.get(i);
+        for (PropertyClass property : propList) {
             String key = property.getName();
             Map<String, Object> propertyMap = new HashMap<>();
             propertyMap.put("Type", property.getClassType());
@@ -61,8 +60,8 @@ public class ApplicationSchema {
             } else if ("DBList".equals(property.getClassType())) {
                 List<ListItem> dbList = ((DBListClass) property).getDBList(context);
                 List<String> dBListValues = new ArrayList<>();
-                for (int j = 0; j < dbList.size(); ++j) {
-                    String dbValue = dbList.get(j).getValue();
+                for (ListItem aDbList : dbList) {
+                    String dbValue = aDbList.getValue();
                     dBListValues.add(dbValue);
                 }
                 propertyMap.put(valueKey, dBListValues);

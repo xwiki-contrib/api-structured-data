@@ -28,11 +28,9 @@ import com.xpn.xwiki.objects.classes.PropertyClass;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
@@ -56,19 +54,17 @@ public class ApplicationItem
     private Integer objNumber;
     private EntityReferenceSerializer<String> serializer;
     private EntityReferenceResolver<String> resolver;
-    private Logger logger;
 
     /**
      * Create an item.
      * @param itemId the document full name in which the item is located
      * @param objNumber the item number in the document
-     * @param xDoc 
+     * @param xDoc the document containing the item
      * @param xObject the BaseObject representing the item in XWiki
      * @param xClass the BaseClass of the item
      * @param context the wiki context
      * @param resolver the document reference resolver
-     * @param serializer 
-     * @param logger 
+     * @param serializer the document reference serializer
      * @throws XWikiException
      */
     public ApplicationItem(String itemId,
@@ -78,8 +74,7 @@ public class ApplicationItem
             BaseClass xClass,
             XWikiContext context,
             EntityReferenceResolver<String> resolver,
-            EntityReferenceSerializer<String> serializer,
-            Logger logger) throws XWikiException {
+            EntityReferenceSerializer<String> serializer) throws XWikiException {
         this.xDoc = xDoc;
         this.xObject = xObject;
         this.context = context;
@@ -88,7 +83,6 @@ public class ApplicationItem
         this.objNumber = objNumber;
         this.serializer = serializer;
         this.resolver = resolver;
-        this.logger = logger;
     }
 
     /**
@@ -106,11 +100,10 @@ public class ApplicationItem
         }
         // Get the properties map
         List<PropertyClass> propList = this.xClass.getEnabledProperties();
-        for (int j = 0; j < propList.size(); ++j) {
-            PropertyClass prop = propList.get(j);
+        for (PropertyClass prop : propList) {
             String key = prop.getName();
             Object propValue;
-            if(!prop.getClassType().equals("Password")) {
+            if (!prop.getClassType().equals("Password")) {
                 try {
                     Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
                     propValue = methodToFind.invoke(this.xObject.getField(key));
@@ -123,7 +116,7 @@ public class ApplicationItem
                         propValue = methodToFind.invoke(this.xObject.getField(key));
                         value.put(key, propValue);
                     } catch (NullPointerException | NoSuchMethodException f) {
-                        //logger.info("Can't find the value of property [{}] in item [{}]", key, this.itemId);
+                        //System.out.println("Can't find the value of property " + key + " in item " + this.itemId);
                     }
                 }
             }
@@ -153,9 +146,7 @@ public class ApplicationItem
                 this.xObject = this.create();
             }
             Set<String> itemKeySet = item.keySet();
-            Iterator<String> iter = itemKeySet.iterator();
-            while (iter.hasNext()) {
-                String key = iter.next();
+            for (String key : itemKeySet) {
                 Object value = item.get(key);
                 this.xObject.set(key, value, this.context);
             }

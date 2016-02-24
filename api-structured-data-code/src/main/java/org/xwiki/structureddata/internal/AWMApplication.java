@@ -126,6 +126,7 @@ public class AWMApplication implements Application
             ApplicationItem item = this.getApplicationItem(itemId, 0, xObj, xDoc);
             value = item.getItemMap();
         } catch (AccessDeniedException e) {
+            // logger.info("Access denied to item [{}] : [{}]", itemId, e.toString());
         } catch (Exception e) {
             logger.error("Unable to load the item [{}] : [{}]", itemId, e.toString());
         }
@@ -147,10 +148,9 @@ public class AWMApplication implements Application
             String awmWhereClause = "doc.space = '" + this.dataSpace + "'";
             Query query = QueryItems.getQuery(queryManager, xClassFullName, options, awmWhereClause, "doc.name");
             List<String> objDocList = query.setWiki(this.wikiRef.getName()).execute();
-            for (int i = 0; i < objDocList.size(); ++i) {
+            for (String docName : objDocList) {
                 // Get all instances of the class in the document
-                String docName = objDocList.get(i);
-                String docFullName = dataSpace+"."+docName;
+                String docFullName = dataSpace + "." + docName;
                 try {
                     XWikiDocument xDoc = this.getDocFromId(docFullName);
                     BaseObject xObj = this.getObjectFromId(docFullName);
@@ -160,6 +160,7 @@ public class AWMApplication implements Application
                         value.put(map.getId(), map);
                     }
                 } catch (AccessDeniedException e) {
+                    // logger.info("Access denied to item [{}] : [{}]", itemId, e.toString());
                 } catch (Exception e) {
                     logger.error("Unable to load the item [{}] : [{}]", docName, e.toString());
                 }
@@ -207,7 +208,7 @@ public class AWMApplication implements Application
 
     /**
      * @param context the wiki context
-     * @param serializer 
+     * @param serializer the document reference serializer
      * @return true if the current document is in an AWM app
      * @throws XWikiException
      */
@@ -311,7 +312,7 @@ public class AWMApplication implements Application
     }
 
     private ApplicationItem getApplicationItem(String objName, Integer objNumber, BaseObject xObj, XWikiDocument xDoc) throws XWikiException {
-        return new ApplicationItem(objName, objNumber, xDoc, xObj, this.xClass, this.context, this.resolver, this.serializer, this.logger);
+        return new ApplicationItem(objName, objNumber, xDoc, xObj, this.xClass, this.context, this.resolver, this.serializer);
     }
 
     @Override

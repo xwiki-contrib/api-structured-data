@@ -140,7 +140,7 @@ public class CurrentApplicationResource extends XWikiResource
             @PathParam("itemId") String itemId) throws Exception
     {
         Application app = getApplication(pageFullName);
-        return app.deleteItem(itemId);
+        return app != null ? app.deleteItem(itemId) : null;
     }
 
     @Path("/items/{itemId}/document")

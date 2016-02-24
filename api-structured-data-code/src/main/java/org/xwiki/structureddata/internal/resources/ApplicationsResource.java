@@ -55,7 +55,7 @@ import org.xwiki.structureddata.internal.DocumentMap;
 import org.xwiki.structureddata.internal.ItemMap;
 
 /**
- * Rest ressource for Application in the current wiki.
+ * Rest resource for Application in the current wiki.
  * 
  * @version $Id$
  */
@@ -199,7 +199,7 @@ public class ApplicationsResource extends XWikiResource
             newApp = new AWMApplication(context, authorization, resolver, serializer, queryManager, appLogger, awmWebHomeRef);
         }
         else {
-            DocumentReference classRef = ApplicationRestTools.getClassRef(context, wikiName, appId, resolver);
+            DocumentReference classRef = ApplicationRestTools.getClassRef(wikiName, appId, resolver);
             newApp = new DefaultApplication(context, authorization, resolver, serializer, queryManager, appLogger, classRef);
         }
         return newApp;

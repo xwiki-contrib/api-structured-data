@@ -20,7 +20,6 @@
 package org.xwiki.structureddata.internal.resources;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.objects.classes.BaseClass;
 import java.util.Date;
 import java.util.Map;
 import org.xwiki.model.EntityType;
@@ -28,7 +27,6 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.structureddata.DataMap;
-import org.xwiki.structureddata.internal.DocumentMap;
 
 /**
  * Tools used by Application rest resources.
@@ -36,7 +34,7 @@ import org.xwiki.structureddata.internal.DocumentMap;
  * @version $Id$
  */
 public class ApplicationRestTools {
-    protected static final DocumentReference getAWMRef(XWikiContext context, String wikiName, String appId)
+    protected static DocumentReference getAWMRef(XWikiContext context, String wikiName, String appId)
     {
         if(wikiName != null) {
             return new DocumentReference(wikiName, appId, "WebHome");
@@ -44,7 +42,7 @@ public class ApplicationRestTools {
         return new DocumentReference(context.getWikiId(), appId, "WebHome");
     }
 
-    protected static final DocumentReference getClassRef(XWikiContext context, String wikiName, String appId, EntityReferenceResolver<String> resolver)
+    protected static DocumentReference getClassRef(String wikiName, String appId, EntityReferenceResolver<String> resolver)
     {
         if(wikiName != null) {
             WikiReference wikiRef = new WikiReference(resolver.resolve(wikiName, EntityType.WIKI));
@@ -53,12 +51,12 @@ public class ApplicationRestTools {
         return new DocumentReference(resolver.resolve(appId, EntityType.DOCUMENT));
     }
 
-    protected static final void updateMapFromJson(Map<String, Object> json, DataMap toUpdate) {
+    protected static void updateMapFromJson(Map<String, Object> json, DataMap oldMapToUpdate) {
         for(Map.Entry<String, Object> e : json.entrySet()) {
             String key = e.getKey();
             try {
                 Object newVal;
-                Object oldVal = ((Map<String, Object>) toUpdate).get(key);
+                Object oldVal = ((Map<String, Object>) oldMapToUpdate).get(key);
                 String className = "";
                 if(oldVal != null) {
                     className = oldVal.getClass().getSimpleName();
@@ -87,7 +85,7 @@ public class ApplicationRestTools {
                         break;
                 }
                 if(!newVal.equals(oldVal)) {
-                    toUpdate.set(key, newVal);
+                    oldMapToUpdate.set(key, newVal);
                 }
             } catch (Exception f) {
             }

@@ -16,12 +16,12 @@ import org.xwiki.query.QueryManager;
  * @version $Id$
  */
 public class QueryItems {
-    private static String queryOpt = "query";
-    private static String limitOpt = "limit";
-    private static String offsetOpt = "offset";
-    private static String hiddenOpt = "hidden";
     protected static Query getQuery(QueryManager queryManager, String xClassFullName, Map<String, Object> options, String appWhereClause, String appSelectClause) throws QueryException
     {
+        String queryOpt = "query";
+        String hiddenOpt = "hidden";
+        String limitOpt = "limit";
+        String offsetOpt = "offset";
         // Create a filter to remove class templates from the results
         // /!\ Templates can be named ApplicationClassTemplate or ApplicationTemplate
         String templateFilter = "and item.name <> '" +  xClassFullName + "Template' ";

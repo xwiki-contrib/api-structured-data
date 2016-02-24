@@ -207,7 +207,7 @@ public class ApplicationsFromWikiResource extends XWikiResource
             newApp = new AWMApplication(context, authorization, resolver, serializer, queryManager, appLogger, awmWebHomeRef);
         }
         else {
-            DocumentReference classRef = ApplicationRestTools.getClassRef(context, wikiName, appId, resolver);
+            DocumentReference classRef = ApplicationRestTools.getClassRef(wikiName, appId, resolver);
             newApp = new DefaultApplication(context, authorization, resolver, serializer, queryManager, appLogger, classRef);
         }
         return newApp;
