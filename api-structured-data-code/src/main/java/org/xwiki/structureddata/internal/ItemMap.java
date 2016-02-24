@@ -20,7 +20,11 @@
 package org.xwiki.structureddata.internal;
 
 import com.xpn.xwiki.doc.XWikiDocument;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.structureddata.DataMap;
 
@@ -81,7 +85,31 @@ public class ItemMap extends HashMap<String, Object> implements DataMap {
         this.docMap = docMapTmp;
     }
 
+    /**
+     * Get some properties of the document containing the item : author, creator, creationDate, updateDate, parent,
+     * hidden, title, content
+     * @return the document map
+     */
     public DocumentMap getDocumentFields() {
         return docMap;
+    }
+
+    /**
+     * Get the selected document properties. Possible values are : author, creator, creationDate, updateDate, parent,
+     * hidden, title, content
+     * @param properties the list of properties to display in the result
+     * @return the document map
+     */
+    public DocumentMap getDocumentFields(List<String> properties) {
+        DocumentMap docMapFiltered = new DocumentMap();
+        if(properties == null || properties.size() == 0) {
+            return docMap;
+        }
+        for(String property : properties) {
+            if(docMap.containsKey(property)) {
+                docMapFiltered.put(property, docMap.get(property));
+            }
+        }
+        return docMapFiltered;
     }
 }

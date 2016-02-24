@@ -24,10 +24,10 @@ public class QueryItems {
         String offsetOpt = "offset";
         // Create a filter to remove class templates from the results
         // /!\ Templates can be named ApplicationClassTemplate or ApplicationTemplate
-        String templateFilter = "and item.name <> '" +  xClassFullName + "Template' ";
+        String templateFilter = " and item.name <> '" +  xClassFullName + "Template' ";
         if (xClassFullName.length() > 5 && xClassFullName.endsWith("Class")) {
             String shortClassName = xClassFullName.substring(0, xClassFullName.length()-5);
-            templateFilter += "and item.name <> '" + shortClassName + "Template' ";
+            templateFilter += " and item.name <> '" + shortClassName + "Template' ";
         }
         // Main search query
         String queryString = "select " + appSelectClause
@@ -35,7 +35,7 @@ public class QueryItems {
                 + "where " + appWhereClause + templateFilter;
         // Add the additional filter from the "options" parameter
         if (options.containsKey(queryOpt)) {
-            String whereClause = (String) options.get(queryOpt);
+            String whereClause = options.get(queryOpt).toString();
             queryString += " and " + whereClause;
         }
         // Hide the hidden documents except if it is explicitly requested to display them

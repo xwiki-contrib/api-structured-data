@@ -25,9 +25,8 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -114,6 +113,13 @@ public class DefaultApplication implements Application
     @Override
     public ItemMap getItem(String itemId) 
     {
+        List<String> properties = new ArrayList<>();
+        return getItem(itemId, properties);
+    }
+
+    @Override
+    public ItemMap getItem(String itemId, List<String> properties)
+    {
         ItemMap value = new ItemMap();
         try {
             String objName = this.getDocNameFromId(itemId);
@@ -121,7 +127,7 @@ public class DefaultApplication implements Application
             XWikiDocument xDoc = this.getDocFromId(itemId);
             BaseObject xObj = this.getObjectFromId(itemId);
             ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj, xDoc);
-            value = item.getItemMap();
+            value = item.getItemMap(properties);
         } catch (AccessDeniedException e) {
             // logger.info("Access denied to item [{}] : [{}]", itemId, e.toString());
         } catch (Exception e) {
@@ -141,6 +147,10 @@ public class DefaultApplication implements Application
     public Map<String, Object> getItems(Map<String, Object> options) throws QueryException, XWikiException {
         Map<String, Object> value = new HashMap<>();
         try {
+            List<String> properties = new ArrayList<>();
+            if(options.containsKey("properties")) {
+                properties = (List<String>) options.get("properties");
+            }
             Query query = QueryItems.getQuery(queryManager, xClassFullName, options, "1=1", "item.name, item.number");
             List<Object[]> objDocList = query.setWiki(this.wikiRef.getName()).execute();
             for (Object[] anObjDocList : objDocList) {
@@ -154,8 +164,8 @@ public class DefaultApplication implements Application
                     BaseObject xObj = xDoc.getXObject(this.xClassRef, objNumber);
                     if (xObj != null) {
                         ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj, xDoc);
-                        ItemMap properties = item.getItemMap();
-                        value.put(properties.getId(), properties);
+                        ItemMap map = item.getItemMap(properties);
+                        value.put(map.getId(), map);
                     }
                 } catch (AccessDeniedException e) {
                     // logger.info("Access denied to item [{}] : [{}]", itemId, e.toString());
@@ -171,6 +181,11 @@ public class DefaultApplication implements Application
 
     @Override
     public Map<String, Object> storeItem(ItemMap itemData) throws Exception {
+        return storeItem(itemData, null);
+    }
+
+    @Override
+    public Map<String, Object> storeItem(ItemMap itemData, DocumentMap itemDocData) throws Exception {
         String itemId = itemData.getId();
         String objName = this.getDocNameFromId(itemId);
         DocumentReference itemDocRef = new DocumentReference(resolver.resolve(objName, EntityType.DOCUMENT, this.wikiRef));
@@ -180,7 +195,7 @@ public class DefaultApplication implements Application
             XWikiDocument xDoc = this.getDocFromId(itemId);
             BaseObject xObj = this.getObjectFromId(itemId);
             ApplicationItem item = this.getApplicationItem(objName, objNumber, xObj, xDoc);
-            return item.store(itemData);
+            return item.store(itemData, itemDocData);
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
             errorMap.put("Error", e.getMessage());

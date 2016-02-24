@@ -20,8 +20,9 @@
 package org.xwiki.structureddata.internal.resources;
 
 import com.xpn.xwiki.XWikiContext;
-import java.util.Date;
-import java.util.Map;
+
+import java.util.*;
+
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
@@ -49,6 +50,13 @@ public class ApplicationRestTools {
             return new DocumentReference(resolver.resolve(appId, EntityType.DOCUMENT, wikiRef));
         }
         return new DocumentReference(resolver.resolve(appId, EntityType.DOCUMENT));
+    }
+
+    protected static List<String> getPropertiesList(String properties) {
+        if(properties == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<String>(Arrays.asList(properties.split(",")));
     }
 
     protected static void updateMapFromJson(Map<String, Object> json, DataMap oldMapToUpdate) {

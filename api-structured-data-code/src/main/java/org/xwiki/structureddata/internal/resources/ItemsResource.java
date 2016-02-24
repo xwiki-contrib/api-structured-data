@@ -20,6 +20,7 @@
 package org.xwiki.structureddata.internal.resources;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.xwiki.structureddata.Application;
@@ -40,7 +41,7 @@ public class ItemsResource
      * @return a map with the items
      * @throws Exception 
      */
-    protected static Map<String, Object> getResource(Application app, String limit, String offset, String query, String hidden) throws Exception
+    protected static Map<String, Object> getResource(Application app, String limit, String offset, String query, String hidden, List<String> properties) throws Exception
     {
         Map<String, Object> options = new HashMap<>();
         if (limit != null) {
@@ -54,6 +55,9 @@ public class ItemsResource
         }
         if (hidden != null) {
             options.put("hidden", hidden);
+        }
+        if (properties != null && properties.size() > 0) {
+            options.put("properties", properties);
         }
         return app.getItems(options);
     }

@@ -19,8 +19,10 @@
  */
 package org.xwiki.structureddata;
 
-import com.xpn.xwiki.objects.classes.BaseClass;
+import java.util.List;
 import java.util.Map;
+
+import org.xwiki.structureddata.internal.DocumentMap;
 import org.xwiki.structureddata.internal.ItemMap;
 
 /**
@@ -44,6 +46,15 @@ public interface Application
      * @throws Exception 
      */
     ItemMap getItem(String itemId) throws Exception;
+
+    /**
+     * Get an item of the application.
+     * @param itemId the string id of the item
+     * @param properties the list of properties to display in the result
+     * @return the map representing the item
+     * @throws Exception
+     */
+    ItemMap getItem(String itemId, List<String> properties) throws Exception;
     
     /**
      * Get the items of the application.
@@ -59,14 +70,22 @@ public interface Application
      * @throws Exception 
      */
     Map<String, Object> getItems(Map<String, Object> options) throws Exception;
-    
+
     /**
      * Store an item of the application in the wiki.
      * @param itemData the data of the item
      * @return the state of the save (Success/Error)
-     * @throws Exception 
+     * @throws Exception
      */
     Map<String, Object> storeItem(ItemMap itemData) throws Exception;
+
+    /**
+     * Store an item of the application in the wiki, with the specified document data.
+     * @param itemDocData the data of the item document
+     * @return the state of the save (Success/Error)
+     * @throws Exception
+     */
+    Map<String, Object> storeItem(ItemMap itemData, DocumentMap itemDocData) throws Exception;
     
     /**
      * Delete an item of the application from the wiki.

@@ -24,6 +24,7 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -99,23 +100,27 @@ public class CurrentApplicationResource extends XWikiResource
                                         @QueryParam("limit") String limit,
                                         @QueryParam("offset") String offset,
                                         @QueryParam("query") String query,
-                                        @QueryParam("hidden") String hidden) throws Exception
+                                        @QueryParam("hidden") String hidden,
+                                        @QueryParam("keys") String keys) throws Exception
     {
+        List<String> properties = ApplicationRestTools.getPropertiesList(keys);
         Application app = getApplication(pageFullName);
         if(app == null)
             return new HashMap<>();
-        return ItemsResource.getResource(app, limit, offset, query, hidden);
+        return ItemsResource.getResource(app, limit, offset, query, hidden, properties);
     }
 
     @Path("/items/{itemId}")
     @GET
     public Map<String, Object> getItem(@PathParam("pageFullName") String pageFullName,
-            @PathParam("itemId") String itemId) throws Exception
+                                       @PathParam("itemId") String itemId,
+                                       @QueryParam("keys") String keys) throws Exception
     {
+        List<String> properties = ApplicationRestTools.getPropertiesList(keys);
         Application app = getApplication(pageFullName);
         if(app == null)
             return new HashMap<>();
-        return app.getItem(itemId);
+        return app.getItem(itemId, properties);
     }
 
     @Path("/items/{itemId}")
@@ -146,12 +151,14 @@ public class CurrentApplicationResource extends XWikiResource
     @Path("/items/{itemId}/document")
     @GET
     public Map<String, Object> getItemDocument(@PathParam("pageFullName") String pageFullName,
-            @PathParam("itemId") String itemId) throws Exception
+                                               @PathParam("itemId") String itemId,
+                                               @QueryParam("keys") String keys) throws Exception
     {
+        List<String> properties = ApplicationRestTools.getPropertiesList(keys);
         Application app = getApplication(pageFullName);
         if(app == null)
             return new HashMap<>();
-        return app.getItem(itemId).getDocumentFields();
+        return app.getItem(itemId).getDocumentFields(properties);
     }
 
     @Path("/items/{itemId}/document")
@@ -168,7 +175,7 @@ public class CurrentApplicationResource extends XWikiResource
         ItemMap item = app.getItem(itemId);
         DocumentMap oldDocData = item.getDocumentFields();
         ApplicationRestTools.updateMapFromJson(docData, oldDocData);
-        return app.storeItem(item);
+        return app.storeItem(item, oldDocData);
     }
 
     private Application getApplication(String pageFullName) throws XWikiException

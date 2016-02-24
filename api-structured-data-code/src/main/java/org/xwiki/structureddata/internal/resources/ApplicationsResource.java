@@ -128,19 +128,23 @@ public class ApplicationsResource extends XWikiResource
                                         @QueryParam("limit") String limit,
                                         @QueryParam("offset") String offset,
                                         @QueryParam("query") String query,
-                                        @QueryParam("hidden") String hidden) throws Exception
+                                        @QueryParam("hidden") String hidden,
+                                        @QueryParam("keys") String keys) throws Exception
     {
+        List<String> properties = ApplicationRestTools.getPropertiesList(keys);
         Application app = getApplication(null, appId);
-        return ItemsResource.getResource(app, limit, offset, query, hidden);
+        return ItemsResource.getResource(app, limit, offset, query, hidden, properties);
     }
 
     @Path("{appName}/items/{itemId}")
     @GET
     public Map<String, Object> getItem(@PathParam("appName") String appId,
-            @PathParam("itemId") String itemId) throws Exception
+                                       @PathParam("itemId") String itemId,
+                                       @QueryParam("keys") String keys) throws Exception
     {
+        List<String> properties = ApplicationRestTools.getPropertiesList(keys);
         Application app = getApplication(null, appId);
-        return app.getItem(itemId);
+        return app.getItem(itemId, properties);
     }
 
     @Path("{appName}/items/{itemId}")
@@ -169,10 +173,12 @@ public class ApplicationsResource extends XWikiResource
     @Path("{appName}/items/{itemId}/document")
     @GET
     public Map<String, Object> getItemDocument(@PathParam("appName") String appId,
-            @PathParam("itemId") String itemId) throws Exception
+                                               @PathParam("itemId") String itemId,
+                                               @QueryParam("keys") String keys) throws Exception
     {
+        List<String> properties = ApplicationRestTools.getPropertiesList(keys);
         Application app = getApplication(null, appId);
-        return app.getItem(itemId).getDocumentFields();
+        return app.getItem(itemId).getDocumentFields(properties);
     }
 
     @Path("{appName}/items/{itemId}/document")
@@ -187,7 +193,7 @@ public class ApplicationsResource extends XWikiResource
         ItemMap item = app.getItem(itemId);
         DocumentMap oldDocData = item.getDocumentFields();
         ApplicationRestTools.updateMapFromJson(docData, oldDocData);
-        return app.storeItem(item);
+        return app.storeItem(item, oldDocData);
     }
 
     private Application getApplication(String wikiName, String appId) throws XWikiException

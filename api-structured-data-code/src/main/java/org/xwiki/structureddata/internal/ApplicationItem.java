@@ -26,11 +26,8 @@ import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 import java.lang.reflect.Method;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
@@ -90,7 +87,7 @@ public class ApplicationItem
      * @return the item map
      * @throws Exception
      */
-    protected ItemMap getItemMap() throws Exception
+    protected ItemMap getItemMap(List<String> properties) throws Exception
     {
         ItemMap value = new ItemMap();
         String methodToSearch = "getValue";
@@ -102,21 +99,23 @@ public class ApplicationItem
         List<PropertyClass> propList = this.xClass.getEnabledProperties();
         for (PropertyClass prop : propList) {
             String key = prop.getName();
-            Object propValue;
-            if (!prop.getClassType().equals("Password")) {
-                try {
-                    Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
-                    propValue = methodToFind.invoke(this.xObject.getField(key));
-                    value.put(key, propValue);
-                } catch (NullPointerException e) {
+            if(properties == null || properties.size() == 0 || properties.contains(key)) {
+                Object propValue;
+                if (!prop.getClassType().equals("Password")) {
                     try {
-                        // If value is not set, set an empty value and try again
-                        this.xObject.set(key, "", this.context);
                         Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
                         propValue = methodToFind.invoke(this.xObject.getField(key));
                         value.put(key, propValue);
-                    } catch (NullPointerException | NoSuchMethodException f) {
-                        //System.out.println("Can't find the value of property " + key + " in item " + this.itemId);
+                    } catch (NullPointerException e) {
+                        try {
+                            // If value is not set, set an empty value and try again
+                            this.xObject.set(key, "", this.context);
+                            Method methodToFind = this.xObject.getField(key).getClass().getMethod(methodToSearch);
+                            propValue = methodToFind.invoke(this.xObject.getField(key));
+                            value.put(key, propValue);
+                        } catch (NullPointerException | NoSuchMethodException f) {
+                            //System.out.println("Can't find the value of property " + key + " in item " + this.itemId);
+                        }
                     }
                 }
             }
@@ -138,7 +137,7 @@ public class ApplicationItem
      * @return the state of the save
      * @throws Exception
      */
-    protected Map<String, Object> store(ItemMap item) throws Exception
+    protected Map<String, Object> store(ItemMap item, DocumentMap itemDocData) throws Exception
     {
         Map<String, Object> result = new HashMap<>();
         try {
@@ -153,7 +152,9 @@ public class ApplicationItem
             this.xDoc.setAuthorReference(context.getUserReference());
             // Save the document fields if they have been changed. If the author has been changed in the item,
             // it will override the previous line which set the author as the current user
-            this.updateDocumentFields(item);
+            if(itemDocData != null) {
+                this.updateDocumentFields(itemDocData);
+            }
             this.context.getWiki().saveDocument(this.xDoc, "Properties updated", this.context);
             result.put(ApplicationItem.SUCCESS, "1");
         } catch (Exception e) {
@@ -200,9 +201,8 @@ public class ApplicationItem
         return newObj;
     }
 
-    private void updateDocumentFields(ItemMap item) {
-        if(item.getDocumentFields() != null && item.getDocumentFields().size() >= 8) {
-            DocumentMap docMap = item.getDocumentFields();
+    private void updateDocumentFields(DocumentMap docMap) {
+        if(docMap.size() >= 0 && docMap.changes.size() >= 0) {
             if(docMap.changes.contains(ItemMap.AUTHOR))
                 this.xDoc.setAuthorReference(new DocumentReference(resolver.resolve((String) docMap.get(ItemMap.AUTHOR), EntityType.DOCUMENT)));
             if(docMap.changes.contains(ItemMap.CREATOR))
