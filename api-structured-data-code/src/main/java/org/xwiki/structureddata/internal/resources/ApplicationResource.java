@@ -42,7 +42,7 @@ public class ApplicationResource
     {
         Map<String, Object> result = new HashMap<>();
         result.put("Schema", app.getSchema());
-        result.put("Items", app.getItems());
+        result.put("Name", app.toString());
         return result;
     }
 }
