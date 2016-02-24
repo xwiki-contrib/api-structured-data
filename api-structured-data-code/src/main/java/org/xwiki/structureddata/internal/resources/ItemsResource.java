@@ -40,7 +40,7 @@ public class ItemsResource
      * @return a map with the items
      * @throws Exception 
      */
-    protected static Map<String, Object> getResource(Application app, String limit, String offset, String query) throws Exception
+    protected static Map<String, Object> getResource(Application app, String limit, String offset, String query, String hidden) throws Exception
     {
         Map<String, Object> options = new HashMap<>();
         if (limit != null) {
@@ -51,6 +51,9 @@ public class ItemsResource
         }
         if (query != null) {
             options.put("query", query);
+        }
+        if (hidden != null) {
+            options.put("hidden", hidden);
         }
         return app.getItems(options);
     }

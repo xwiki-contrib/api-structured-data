@@ -96,14 +96,15 @@ public class CurrentApplicationResource extends XWikiResource
     @Path("/items")
     @GET
     public Map<String, Object> getItems(@PathParam("pageFullName") String pageFullName,
-            @QueryParam("limit") String limit,
-            @QueryParam("offset") String offset,
-            @QueryParam("query") String query) throws Exception
+                                        @QueryParam("limit") String limit,
+                                        @QueryParam("offset") String offset,
+                                        @QueryParam("query") String query,
+                                        @QueryParam("hidden") String hidden) throws Exception
     {
         Application app = getApplication(pageFullName);
         if(app == null)
             return new HashMap<>();
-        return ItemsResource.getResource(app, limit, offset, query);
+        return ItemsResource.getResource(app, limit, offset, query, hidden);
     }
 
     @Path("/items/{itemId}")

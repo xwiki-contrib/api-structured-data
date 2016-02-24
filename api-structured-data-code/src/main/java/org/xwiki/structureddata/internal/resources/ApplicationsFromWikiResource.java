@@ -127,13 +127,14 @@ public class ApplicationsFromWikiResource extends XWikiResource
     @Path("{appName}/items")
     @GET
     public Map<String, Object> getItems(@PathParam("wikiName") String wikiName,
-            @PathParam("appName") String appId,
-            @QueryParam("limit") String limit,
-            @QueryParam("offset") String offset,
-            @QueryParam("query") String query) throws Exception
+                                        @PathParam("appName") String appId,
+                                        @QueryParam("limit") String limit,
+                                        @QueryParam("offset") String offset,
+                                        @QueryParam("query") String query,
+                                        @QueryParam("hidden") String hidden) throws Exception
     {
         Application app = getApplication(wikiName, appId);
-        return ItemsResource.getResource(app, limit, offset, query);
+        return ItemsResource.getResource(app, limit, offset, query, hidden);
     }
 
     @Path("{appName}/items/{itemId}")
