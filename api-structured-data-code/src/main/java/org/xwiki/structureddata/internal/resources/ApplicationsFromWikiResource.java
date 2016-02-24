@@ -86,6 +86,8 @@ public class ApplicationsFromWikiResource extends XWikiResource
     {
         XWikiContext context = xcontextProvider.get();
         Map<String, Object> result = new HashMap<>();
+        String oldWikiId = context.getWikiId();
+        context.setWikiId(wikiName);
         XWiki xwiki = context.getWiki();
         List<String> classList = xwiki.getClassList(context);
         String queryString = "select doc.space"
@@ -100,6 +102,7 @@ public class ApplicationsFromWikiResource extends XWikiResource
             result.put("Error while searching AWM applications list", "Error: "+e);
         }
         result.put("XWiki Classes", classList);
+        context.setWikiId(oldWikiId);
         return result;
     }
 
