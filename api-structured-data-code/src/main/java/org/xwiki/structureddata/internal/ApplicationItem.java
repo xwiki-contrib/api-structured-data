@@ -146,8 +146,10 @@ public class ApplicationItem
             }
             Set<String> itemKeySet = item.keySet();
             for (String key : itemKeySet) {
+                String className = this.xObject.get(key).getClass().getSimpleName();
                 Object value = item.get(key);
-                this.xObject.set(key, value, this.context);
+                Object newValue = convertTo(value, className);
+                this.xObject.set(key, newValue, this.context);
             }
             this.xDoc.setAuthorReference(context.getUserReference());
             // Save the document fields if they have been changed. If the author has been changed in the item,
@@ -159,8 +161,30 @@ public class ApplicationItem
             result.put(ApplicationItem.SUCCESS, "1");
         } catch (Exception e) {
             result.put(ApplicationItem.ERROR, e);
+            e.printStackTrace();
         }
         return result;
+    }
+
+    private Object convertTo(Object value, String type) {
+        if(value == null)
+            return null;
+        try {
+            switch (type) {
+                case "LongProperty":
+                    return Long.parseLong(value.toString());
+                case "FloatProperty":
+                    return Float.parseFloat(value.toString());
+                case "DoubleProperty":
+                    return Double.parseDouble(value.toString());
+                case "IntegerProperty":
+                    return Integer.parseInt(value.toString());
+                default:
+                    return value;
+            }
+        } catch(Exception e) {
+            return null;
+        }
     }
 
     /**
