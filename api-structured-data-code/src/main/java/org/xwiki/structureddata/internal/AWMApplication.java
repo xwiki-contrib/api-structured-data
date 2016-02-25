@@ -208,11 +208,12 @@ public class AWMApplication implements Application
         String objName = dataSpace+"."+itemId; // The XWiki object name is the document full name
         DocumentReference itemDocRef = new DocumentReference(resolver.resolve(objName, EntityType.DOCUMENT, this.wikiRef));
         try {
-            this.authorization.checkAccess(Right.EDIT, itemDocRef);
+            this.authorization.checkAccess(Right.DELETE, itemDocRef);
             XWikiDocument xDoc = this.getDocFromId(objName);
-            BaseObject xObj = this.getObjectFromId(objName);
-            ApplicationItem item = this.getApplicationItem(objName, 0, xObj, xDoc);
-            return item.delete();
+            xwiki.deleteDocument(xDoc, context);
+            Map<String, Object> successMap = new HashMap<>();
+            successMap.put("Success", 1);
+            return successMap;
         } catch(AccessDeniedException e) {
             Map<String, Object> errorMap = new HashMap<>();
             errorMap.put("Error", e.getMessage());
