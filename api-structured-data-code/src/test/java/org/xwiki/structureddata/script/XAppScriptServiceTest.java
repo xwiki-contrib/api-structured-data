@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -195,7 +196,7 @@ public class XAppScriptServiceTest
         // Create the result map
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("Success", "1");
-        
+
         // Check for success      
         Assert.assertEquals(xApp.getApp(classRef).storeItem(itemMap), resultMap);
         // Check that properties have been updated and modifications have been saved
@@ -237,9 +238,11 @@ public class XAppScriptServiceTest
         when(objDoc.getXObject(classRef, 0)).thenReturn(obj);
         StringProperty prop1Obj = mock(StringProperty.class);
         when(obj.getField("prop1")).thenReturn(prop1Obj);
+        when(obj.get("prop1")).thenReturn(prop1Obj);
         when(prop1Obj.getValue()).thenReturn(valueProp1);
         StringListProperty prop2Obj = mock(StringListProperty.class);
         when(obj.getField("prop2")).thenReturn(prop2Obj);
+        when(obj.get("prop2")).thenReturn(prop2Obj);
         when(prop2Obj.getValue()).thenReturn(valueProp2);
         
         ItemMap prop1data = new ItemMap();
