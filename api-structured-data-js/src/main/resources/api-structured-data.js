@@ -53,9 +53,16 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
       });
     };
 
-    var getItem = exports.getItem = function(itemId, callback) {
+    var getItem = exports.getItem = function(itemId, properties, callback) {
+      // getItem() should work with or without the "properties" parameter. If "properties" is not provided,
+      // the second arg is the callback.
+      if(typeof callback === 'undefined' && typeof properties === 'function') {
+        callback = properties;
+        properties = '';
+      }
       $.ajax({
         url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURI(appId)+'/items/'+encodeURI(itemId),
+        data: 'properties='+properties,
         type: "GET"
       }).success(function(data){
         callback(null, data);
@@ -88,9 +95,16 @@ define(['jquery', 'xwiki-meta'], function ($, xm) {
       });
     };
 
-    var getItemDocument = exports.getItemDocument = function(itemId, callback) {
+    var getItemDocument = exports.getItemDocument = function(itemId, properties, callback) {
+      // getItemDocument() should work with or without the "properties" parameter. If "properties" is not provided,
+      // the second arg is the callback.
+      if(typeof callback === 'undefined' && typeof properties === 'function') {
+        callback = properties;
+        properties = '';
+      }
       $.ajax({
         url : '/xwiki/rest/'+addWikiPath+'applications/'+addCurrentPath + encodeURI(appId)+'/items/'+encodeURI(itemId)+'/document',
+        data: 'properties='+properties,
         type: "GET"
       }).success(function(data){
         callback(null, data);
