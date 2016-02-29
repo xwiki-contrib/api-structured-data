@@ -6,6 +6,15 @@
 package org.xwiki.structureddata.internal;
 
 import java.util.Map;
+
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseProperty;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.ObjectPropertyReference;
+import org.xwiki.model.reference.ObjectReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
@@ -16,8 +25,7 @@ import org.xwiki.query.QueryManager;
  * @version $Id$
  */
 public class QueryItems {
-    protected static Query getQuery(QueryManager queryManager, String xClassFullName, Map<String, Object> options, String appWhereClause, String appSelectClause) throws QueryException
-    {
+    protected static Query getQuery(XWikiContext context, QueryManager queryManager, String xClassFullName, Map<String, Object> options, String appWhereClause, String appSelectClause) throws QueryException, XWikiException {
         String queryOpt = "query";
         String hiddenOpt = "hidden";
         String limitOpt = "limit";
@@ -48,14 +56,18 @@ public class QueryItems {
             }
             // Add the application filter (i.e. "Data" space for AWM app) and the template filters
             queryString += "where " + appWhereClause + templateFilter;
-            // Hide the hidden documents except if it is explicitly requested to display them
-            if (options.containsKey(hiddenOpt)) {
-                String hiddenValue = options.get(hiddenOpt).toString();
-                if (!(hiddenValue.equals("true") || hiddenValue.equals("1"))) {
+            // Hide the hidden documents except if it is explicitly requested to display them or if the user has
+            // chosen to display them in his profile
+            Boolean viewHidden = getViewHiddenDocuments(context); // Get the value in the user's profile
+            if(!viewHidden) {
+                if (options.containsKey(hiddenOpt)) {
+                    String hiddenValue = options.get(hiddenOpt).toString();
+                    if (!(hiddenValue.equals("true") || hiddenValue.equals("1"))) {
+                        queryString += " and (doc.hidden <> true or doc.hidden is null)";
+                    }
+                } else {
                     queryString += " and (doc.hidden <> true or doc.hidden is null)";
                 }
-            } else {
-                queryString += " and (doc.hidden <> true or doc.hidden is null)";
             }
             // Order the results by the name of the document (and object number if applicable) or by the specified
             // property
@@ -76,5 +88,20 @@ public class QueryItems {
         }
 
         return query;
+    }
+
+    protected static Boolean getViewHiddenDocuments(XWikiContext context) {
+        try {
+            DocumentReference userRef = context.getUserReference();
+            XWiki xwiki = context.getWiki();
+            XWikiDocument userDoc = xwiki.getDocument(userRef, context);
+            ObjectReference objRef = new ObjectReference("XWiki.XWikiUsers", userRef);
+            ObjectPropertyReference objPropRef = new ObjectPropertyReference("displayHiddenDocuments", objRef);
+            BaseProperty hiddenDocProp = userDoc.getXObjectProperty(objPropRef);
+            Object value = hiddenDocProp.getValue();
+            return value != null && Integer.parseInt(value.toString()) == 1;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -151,7 +151,7 @@ public class DefaultApplication implements Application
             if(options.containsKey("properties")) {
                 properties = (List<String>) options.get("properties");
             }
-            Query query = QueryItems.getQuery(queryManager, xClassFullName, options, "1=1", "item.name, item.number");
+            Query query = QueryItems.getQuery(context, queryManager, xClassFullName, options, "1=1", "item.name, item.number");
             List<Object[]> objDocList = query.setWiki(this.wikiRef.getName()).execute();
             for (Object[] anObjDocList : objDocList) {
                 // Get all instances of the class in the document

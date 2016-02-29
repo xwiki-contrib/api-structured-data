@@ -155,7 +155,7 @@ public class AWMApplication implements Application
             }
             String xClassFullName = serializer.serialize(xClassRef);
             String awmWhereClause = "doc.space = '" + this.dataSpace + "'";
-            Query query = QueryItems.getQuery(queryManager, xClassFullName, options, awmWhereClause, "doc.name");
+            Query query = QueryItems.getQuery(context, queryManager, xClassFullName, options, awmWhereClause, "doc.name");
             List<String> objDocList = query.setWiki(this.wikiRef.getName()).execute();
             for (String docName : objDocList) {
                 // Get all instances of the class in the document
