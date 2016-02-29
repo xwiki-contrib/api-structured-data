@@ -101,26 +101,27 @@ public class CurrentApplicationResource extends XWikiResource
                                         @QueryParam("offset") String offset,
                                         @QueryParam("query") String query,
                                         @QueryParam("hidden") String hidden,
-                                        @QueryParam("keys") String keys) throws Exception
+                                        @QueryParam("order") String order,
+                                        @QueryParam("properties") String properties) throws Exception
     {
-        List<String> properties = ApplicationRestTools.getPropertiesList(keys);
+        List<String> propertiesList = ApplicationRestTools.getPropertiesList(properties);
         Application app = getApplication(pageFullName);
         if(app == null)
             return new HashMap<>();
-        return ItemsResource.getResource(app, limit, offset, query, hidden, properties);
+        return ItemsResource.getResource(app, limit, offset, query, hidden, order, propertiesList);
     }
 
     @Path("/items/{itemId}")
     @GET
     public Map<String, Object> getItem(@PathParam("pageFullName") String pageFullName,
                                        @PathParam("itemId") String itemId,
-                                       @QueryParam("keys") String keys) throws Exception
+                                       @QueryParam("properties") String properties) throws Exception
     {
-        List<String> properties = ApplicationRestTools.getPropertiesList(keys);
+        List<String> propertiesList = ApplicationRestTools.getPropertiesList(properties);
         Application app = getApplication(pageFullName);
         if(app == null)
             return new HashMap<>();
-        return app.getItem(itemId, properties);
+        return app.getItem(itemId, propertiesList);
     }
 
     @Path("/items/{itemId}")
@@ -152,13 +153,13 @@ public class CurrentApplicationResource extends XWikiResource
     @GET
     public Map<String, Object> getItemDocument(@PathParam("pageFullName") String pageFullName,
                                                @PathParam("itemId") String itemId,
-                                               @QueryParam("keys") String keys) throws Exception
+                                               @QueryParam("properties") String properties) throws Exception
     {
-        List<String> properties = ApplicationRestTools.getPropertiesList(keys);
+        List<String> propertiesList = ApplicationRestTools.getPropertiesList(properties);
         Application app = getApplication(pageFullName);
         if(app == null)
             return new HashMap<>();
-        return app.getItem(itemId).getDocumentFields(properties);
+        return app.getItem(itemId).getDocumentFields(propertiesList);
     }
 
     @Path("/items/{itemId}/document")
